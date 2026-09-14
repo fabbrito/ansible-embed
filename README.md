@@ -66,15 +66,15 @@ as each role lands.
 
 ## Seed
 
-A board first boots from a cloud-init seed on its boot partition. Mount the partition on the controller and render the
-seed from the same inventory the converge uses:
+A board first boots from a cloud-init seed on its boot partition. Render it from the same inventory the converge uses:
 
 ```bash
-ansible-playbook fabbrito.embed.seed -e target=<board> -e seed_output_dir=<mounted boot partition>
+ansible-playbook fabbrito.embed.seed -e target=<board> -e seed_output_dir=<dir>
 ```
 
-It writes `user-data` and `meta-data`: hostname from the first label of the inventory name, `ansible_user` with
-passwordless sudo and your keys, no password, password SSH off, SSH enabled.
+It writes `user-data` and `meta-data` into `<dir>`: a local directory to copy onto the boot partition (gitignore it), or
+the mounted partition itself. The seed names the board after the first label of its inventory name and creates
+`ansible_user` with passwordless sudo and your keys; no password, password SSH off, SSH enabled.
 
 Recovery: edit or regenerate the seed, bump `seed_generation`, boot. cloud-init applies it again, and the board's SSH
 host keys change.
@@ -84,11 +84,11 @@ which strips the image's passwordless sudo and leaves nothing to converge with.
 
 ### Required by `seed`
 
-| Var                    | Where                      | What it buys                                                     |
-| ---------------------- | -------------------------- | ---------------------------------------------------------------- |
-| `ansible_user`         | inventory                  | The account the seed creates and converges connect as. Not root. |
-| `seed_authorized_keys` | `group_vars` / `host_vars` | Public keys for that account. Asserted a non-empty list.         |
-| `seed_output_dir`      | `-e`                       | Directory to write into. Asserted to exist.                      |
+| Var                    | Where                      | What it buys                                                                                   |
+| ---------------------- | -------------------------- | ---------------------------------------------------------------------------------------------- |
+| `ansible_user`         | inventory                  | The account the seed creates and converges connect as. Not root.                               |
+| `seed_authorized_keys` | `group_vars` / `host_vars` | Public keys for that account. Asserted a non-empty list.                                       |
+| `seed_output_dir`      | `-e`                       | Directory to write into, relative to the working directory; created when absent. Asserted set. |
 
 ### Optional — absent, the default stands
 

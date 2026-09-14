@@ -26,18 +26,33 @@
     fail_msg: seed_authorized_keys must be a non-empty list of public keys.
     quiet: true
 
+- name: Assert the output directory is named
+  ansible.builtin.assert:
+    that: seed_output_dir | length > 0
+    fail_msg: >-
+      seed_output_dir is unset. Pass a local directory or the mounted boot
+      partition with -e seed_output_dir=<dir>.
+    quiet: true
+
+# Modules resolve a relative path against the playbook's directory, inside the
+# installed collection. The filter runs in the directory ansible-playbook
+# started in.
+- name: Resolve the output directory
+  ansible.builtin.set_fact:
+    seed_output_path: "{{ seed_output_dir | realpath }}"
+
 - name: Stat the output directory
   ansible.builtin.stat:
-    path: "{{ seed_output_dir }}"
+    path: "{{ seed_output_path }}"
   register: seed_output_stat
 
-- name: Assert the output directory exists
-  ansible.builtin.assert:
-    that: seed_output_stat.stat.isdir | default(false)
-    fail_msg: >-
-      seed_output_dir '{{ seed_output_dir }}' is not a directory. Pass the
-      mounted boot partition with -e seed_output_dir=<dir>.
-    quiet: true
+# Only when absent: chmod on an existing mounted boot partition can fail.
+- name: Create the output directory
+  ansible.builtin.file:
+    path: "{{ seed_output_path }}"
+    state: directory
+    mode: "0755"
+  when: not seed_output_stat.stat.exists
 
 # Templates read these, never inventory vars, so goldens can set them.
 - name: Name the board and its user
@@ -58,11 +73,17 @@
 - name: Render user-data
   ansible.builtin.template:
     src: user-data.j2
-    dest: "{{ seed_output_dir }}/user-data"
+    dest: "{{ seed_output_path }}/user-data"
     mode: "0644"
 
 - name: Render meta-data
   ansible.builtin.template:
     src: meta-data.j2
-    dest: "{{ seed_output_dir }}/meta-data"
+    dest: "{{ seed_output_path }}/meta-data"
     mode: "0644"
+
+- name: Report where the seed is
+  ansible.builtin.debug:
+    msg: >-
+      Seed for {{ seed_hostname }} in {{ seed_output_path }}. Copy
+      user-data and meta-data onto the boot partition, then boot.

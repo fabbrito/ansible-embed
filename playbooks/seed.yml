@@ -1,6 +1,5 @@
 ---
-# Renders a board's cloud-init seed onto its mounted boot partition, from the
-# controller.
+# Renders a board's cloud-init seed on the controller, for its boot partition.
 #
 #   ansible-playbook fabbrito.embed.seed -e target=<board> -e seed_output_dir=<dir>
 #

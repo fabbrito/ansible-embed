@@ -9,6 +9,6 @@ seed_timezone: ""
 # A new value re-applies the seed on next boot — the break-glass lever.
 seed_generation: 1
 
-# Mounted boot partition to write into, usually via -e. Asserted an existing
-# directory.
+# Directory to write into, relative to where ansible-playbook runs; created when
+# absent. Asserted set: the consumer picks a local dir or the mounted partition.
 seed_output_dir: ""

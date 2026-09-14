@@ -35,7 +35,7 @@ Three rules the layout does not enforce:
 
 - **Fixtures do not isolate themselves.** `render-one.yml` re-reads the role's `defaults/main.yml` before each fixture,
   and that re-read is the only thing clearing the previous fixture's values. A var the defaults do **not** declare — a
-  contract var like `embed_arch_override`, or anything vaulted in the consuming repo — survives into every fixture
+  contract var like `embed_assert_hostname`, or anything vaulted in the consuming repo — survives into every fixture
   sorted after it. So every fixture that cares about such a var sets it explicitly, including to empty. Without that, a
   case meant to pin one branch quietly becomes a second copy of the case before it.
 - **`steps/` includes the role's own task file where a derivation is security-critical**, rather than restating it. The

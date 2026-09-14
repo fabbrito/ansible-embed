@@ -1,27 +1,28 @@
 # fabbrito.embed
 
-Baseline convergence for Raspberry Pi OS Lite boards, as an Ansible collection.
+Baseline convergence for Debian boards, as an Ansible collection.
 
-It installs and keeps converged the layer every board needs and no board is interesting for: a platform and preseed
-gate, OS hardening, conservative SD-card wear reduction, clock behaviour on a board with no real-time clock,
-UUID-mounted USB storage, rclone against Cloudflare R2, and Tailscale for remote access. **Service roles do not live
-here** — they stay in the repo that owns the service, which is also where inventory, secrets and the converge itself
-live.
+It installs and keeps converged the layer every board needs and no board is interesting for: a cloud-init seed for first
+boot, a platform gate, OS hardening, conservative SD-card wear reduction, clock behaviour on a board with no real-time
+clock, UUID-mounted USB storage, rclone against Cloudflare R2, and Tailscale for remote access. **Service roles do not
+live here** — they stay in the repo that owns the service, which is also where inventory, secrets and the converge
+itself live.
 
 ## Platform
 
-|        |                                                                          |
-| ------ | ------------------------------------------------------------------------ |
-| OS     | Raspberry Pi OS **Lite**, bookworm (12) or newer                         |
-| Init   | systemd                                                                  |
-| Arch   | `armhf` or `arm64`, read from `dpkg --print-architecture` (the userland) |
-| Boards | Raspberry Pi 2B and newer                                                |
+|           |                                                                          |
+| --------- | ------------------------------------------------------------------------ |
+| OS        | Debian **13 (trixie)** or newer, or a derivative on Debian's numbering   |
+| Init      | systemd                                                                  |
+| Arch      | `armhf` or `arm64`, read from `dpkg --print-architecture` (the userland) |
+| Seed      | cloud-init, seeded from the boot partition                               |
+| Reference | Raspberry Pi OS Lite trixie on a Raspberry Pi 2B — the one tested board  |
 
-ARMv6 boards — Pi 1, Zero, Zero W, CM1 — are **refused**: their userland needs `GOARM=5`, and nothing here builds for
-it. Raspberry Pi OS is what this collection is tested and claimed against; other Debian-family ARM boards are
-best-effort and unclaimed.
+Other Debian boards are expected to work and are not tested. ARMv6 boards (Pi 1, Zero, Zero W, CM1) are **refused**:
+Raspbian's userland runs there, but nothing here builds for `GOARM=5`.
 
-Not supported, and not planned: DietPi, Dropbear, Alpine/OpenWrt or any non-systemd init, and Debian before bookworm.
+Not supported: Ubuntu and other distros numbered apart from Debian, DietPi, Dropbear, non-systemd init, and Debian
+before trixie.
 
 ## Install
 

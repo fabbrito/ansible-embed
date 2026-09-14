@@ -24,16 +24,21 @@ _Avoid_: version, dependency
 
 ## Boards
 
-**Board**: A Raspberry Pi running Raspberry Pi OS, plus the SD card it boots from and any USB storage attached to it.
-The unit a consumer converges. _Avoid_: device, node, machine
+**Board**: A single-board computer running Debian or a derivative on Debian's numbering, plus the card it boots from and
+any USB storage attached to it. The unit a consumer converges. The reference board is a Raspberry Pi on Raspberry Pi OS.
+_Avoid_: device, node, machine
 
-**Seed**: The customization the consumer writes to the boot partition before first boot — cloud-init on trixie, the
-`custom.toml` path on bookworm — which names the board and creates its first user. It belongs to the consumer. This
-layer asserts the seed's _outcomes_ and never reads the seed file, so both formats are fine. _Avoid_: preseed, firstrun,
-provisioning
+**Seed**: The cloud-init `user-data` and `meta-data` on a card's boot partition, which name the board and create its
+first user. This layer renders it from the consumer's inventory; the consumer writes it to the card. The converge
+asserts the seed's _outcomes_ and never reads the file back, so a hand-made seed is fine. It stays on the card, because
+it is the break-glass. _Avoid_: preseed, firstrun, provisioning
 
-**First boot**: The one run of the seed that turns a flashed card into a reachable board. It is the consumer's, never
-this layer's; there is no bootstrap play here. _Avoid_: provisioning, setup
+**First boot**: The run of the seed that turns a flashed card into a reachable board. The seed is the bootstrap; there
+is no bootstrap play here. _Avoid_: provisioning, setup
+
+**Break-glass**: The way back into a board nothing else reaches: edit the seed on the card, bump its generation, boot.
+cloud-init sees a new instance and applies the seed again. There is no root SSH key, and cloud-init is never disabled,
+because either would take this away. _Avoid_: recovery, rescue
 
 **Arch**: The **userland** architecture, as `dpkg --print-architecture` reports it — `armhf` or `arm64`. Not the
 kernel's: a board running a 64-bit kernel with a 32-bit userland reports `arm64` there and `armhf` here, and only the
@@ -59,8 +64,8 @@ group. One line of inventory instead of a conditional inside a role. _Avoid_: op
 places where "it reads better this way" is a bug report. _Avoid_: important, critical
 
 **Lock-out**: Losing the SSH path to a board — a converge severing Ansible's own connection, which does not fail loudly
-(the task succeeds and the board is gone), or a hardening change that leaves no way back in. Guarded ahead of time, not
-recovered from. _Avoid_: outage, bricking
+(the task succeeds and the board is gone), or a hardening change that leaves no way back in. Guarded ahead of time;
+break-glass is the recovery, not the plan. _Avoid_: outage, bricking
 
 ## Storage and wear
 
@@ -75,9 +80,9 @@ input; formatting and partitioning are a manual step, never this layer's. _Avoid
 leaves writes landing silently on the SD card — the failure is invisible until the card fills. _Avoid_: verification,
 sanity check
 
-**Stale clock**: What a board believes on boot before NTP corrects it, restored from `fake-hwclock`. apt refuses Release
-files it thinks are not yet valid until then, which is why the baseline disables `Check-Date`. _Avoid_: wrong time,
-clock drift
+**Stale clock**: What a board believes on boot before NTP corrects it — the last time timesyncd saved, hours or days
+behind on a board that was off. apt refuses Release files it thinks are not yet valid until then, which is why the
+baseline disables `Check-Date`. _Avoid_: wrong time, clock drift
 
 ## Remote access
 

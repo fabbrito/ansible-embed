@@ -1,0 +1,14 @@
+---
+# Public keys the seeded user logs in with. Asserted non-empty: the seed sets no
+# password, so an empty list seeds a board nobody can reach.
+seed_authorized_keys: []
+
+# IANA zone. Empty skips the key; the image default stands.
+seed_timezone: ""
+
+# A new value re-applies the seed on next boot — the break-glass lever.
+seed_generation: 1
+
+# Mounted boot partition to write into, usually via -e. Asserted an existing
+# directory.
+seed_output_dir: ""

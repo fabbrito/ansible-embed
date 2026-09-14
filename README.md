@@ -64,6 +64,39 @@ ansible-galaxy collection install -r requirements.yml
 This collection ships no inventory, no vault and no host — the contract it reads from the consumer is documented below
 as each role lands.
 
+## Seed
+
+A board first boots from a cloud-init seed on its boot partition. Mount the partition on the controller and render the
+seed from the same inventory the converge uses:
+
+```bash
+ansible-playbook fabbrito.embed.seed -e target=<board> -e seed_output_dir=<mounted boot partition>
+```
+
+It writes `user-data` and `meta-data`: hostname from the first label of the inventory name, `ansible_user` with
+passwordless sudo and your keys, no password, password SSH off, SSH enabled.
+
+Recovery: edit or regenerate the seed, bump `seed_generation`, boot. cloud-init applies it again, and the board's SSH
+host keys change.
+
+A hand-made seed works if it ends in the same state. Raspberry Pi Imager's "no passwordless sudo" writes `sudo: null`,
+which strips the image's passwordless sudo and leaves nothing to converge with.
+
+### Required by `seed`
+
+| Var                    | Where                      | What it buys                                                     |
+| ---------------------- | -------------------------- | ---------------------------------------------------------------- |
+| `ansible_user`         | inventory                  | The account the seed creates and converges connect as. Not root. |
+| `seed_authorized_keys` | `group_vars` / `host_vars` | Public keys for that account. Asserted a non-empty list.         |
+| `seed_output_dir`      | `-e`                       | Directory to write into. Asserted to exist.                      |
+
+### Optional — absent, the default stands
+
+| Var               | Where            | What it buys                                               |
+| ----------------- | ---------------- | ---------------------------------------------------------- |
+| `seed_timezone`   | `group_vars/all` | IANA zone. Empty leaves the image's.                       |
+| `seed_generation` | `host_vars`      | Default `1`. A new value re-applies the seed on next boot. |
+
 ## Development
 
 ```bash

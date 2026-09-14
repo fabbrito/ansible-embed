@@ -1,0 +1,10 @@
+---
+# Role defaults: one key, no timezone key, generation 1.
+#
+# EVERY VALUE BELOW IS FAKE.
+seed_authorized_keys:
+  - ssh-ed25519 AAAAgolden-fixture-not-a-key operator@example
+
+# Derived by the role, not declared in defaults: each fixture sets them.
+seed_hostname: board-a
+seed_user: operator

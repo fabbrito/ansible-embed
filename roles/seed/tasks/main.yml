@@ -1,0 +1,68 @@
+---
+- name: Assert the play targets one board
+  ansible.builtin.assert:
+    that: ansible_play_hosts_all | length == 1
+    fail_msg: >-
+      target matched {{ ansible_play_hosts_all | length }} hosts. Every seed
+      lands in the same seed_output_dir, so all but one would be overwritten.
+    quiet: true
+
+- name: Assert the seeded user
+  ansible.builtin.assert:
+    that:
+      - ansible_user | default('') is match('^[a-z][-a-z0-9_]*$')
+      - ansible_user != 'root'
+    fail_msg: >-
+      ansible_user must name a non-root account. The seed creates it, every
+      converge connects as it, and the image refuses root SSH.
+    quiet: true
+
+- name: Assert the seed has keys
+  ansible.builtin.assert:
+    that:
+      - seed_authorized_keys is sequence
+      - seed_authorized_keys is not string
+      - seed_authorized_keys | length > 0
+    fail_msg: seed_authorized_keys must be a non-empty list of public keys.
+    quiet: true
+
+- name: Stat the output directory
+  ansible.builtin.stat:
+    path: "{{ seed_output_dir }}"
+  register: seed_output_stat
+
+- name: Assert the output directory exists
+  ansible.builtin.assert:
+    that: seed_output_stat.stat.isdir | default(false)
+    fail_msg: >-
+      seed_output_dir '{{ seed_output_dir }}' is not a directory. Pass the
+      mounted boot partition with -e seed_output_dir=<dir>.
+    quiet: true
+
+# Templates read these, never inventory vars, so goldens can set them.
+- name: Name the board and its user
+  ansible.builtin.set_fact:
+    seed_hostname: "{{ inventory_hostname.split('.') | first }}"
+    seed_user: "{{ ansible_user }}"
+
+- name: Assert the hostname label
+  ansible.builtin.assert:
+    that:
+      - seed_hostname is match('^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$')
+      - seed_hostname is not match('^[0-9]+$')
+    fail_msg: >-
+      '{{ seed_hostname }}', the first label of {{ inventory_hostname }}, is not
+      a hostname. An inventory keyed by IP cannot name a board.
+    quiet: true
+
+- name: Render user-data
+  ansible.builtin.template:
+    src: user-data.j2
+    dest: "{{ seed_output_dir }}/user-data"
+    mode: "0644"
+
+- name: Render meta-data
+  ansible.builtin.template:
+    src: meta-data.j2
+    dest: "{{ seed_output_dir }}/meta-data"
+    mode: "0644"

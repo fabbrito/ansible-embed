@@ -1,0 +1,93 @@
+---
+# Collection manifest. Consumed by `ansible-galaxy collection install`, which is
+# how consuming repos take this layer — never by vendoring or a submodule.
+#
+# Starts at 1.0.0 by choice, not by rule: ansible-lint's version floor
+# (galaxy[version-incorrect]) is opt-in and this repo does not enable it. 0.x
+# would say the contract may still move, and the README's var table is a
+# contract we intend to hold. Tag the repo to match on every release;
+# consumers pin that tag in their requirements.yml.
+#
+# `embed`, not `embed-infra`: ansible-galaxy validates each dotted part of a
+# collection name with Python's str.isidentifier(), and a hyphen is rejected.
+# The repository may be hyphenated (`ansible-embed`), the collection may not.
+namespace: fabbrito
+name: embed
+version: 1.0.0
+readme: README.md
+
+# No mailbox: this manifest ships to every consumer and MANIFEST.json is world
+# readable once the repo is public. Contact goes through the repo — issues for
+# bugs, the Security tab for anything private (SECURITY.md).
+authors:
+  - Fabrício Brito (@fabbrito)
+
+description: >-
+  Baseline convergence for Raspberry Pi OS Lite boards — platform and preseed
+  gate, OS hardening, SD-card wear reduction, clock behaviour without an RTC,
+  UUID-mounted USB state, rclone/R2 backups, and Tailscale. Service roles stay
+  in the consuming repo.
+
+# Both, and they do coexist — each answers a different reader. `license` is the
+# SPDX id a tool matches on (Galaxy's search, a consumer's licence audit);
+# `license_file` is what actually ships the terms. Declaring only the id would
+# leave a tarball with no licence text in it.
+license:
+  - Apache-2.0
+
+license_file: LICENSE
+
+tags:
+  - raspberrypi
+  - embedded
+  - linux
+  - debian
+  - arm
+  - hardening
+  - backup
+  - tailscale
+
+# Mirrors the bounds the source repo pinned. `ansible.posix` alone: sysctl and
+# mount are what the roles need, and no v1 role justifies a second dependency.
+dependencies:
+  ansible.posix: ">=2.0.0,<3.0.0"
+
+repository: https://github.com/fabbrito/ansible-embed
+documentation: https://github.com/fabbrito/ansible-embed/blob/master/README.md
+homepage: https://github.com/fabbrito/ansible-embed
+issues: https://github.com/fabbrito/ansible-embed/issues
+
+# Repo-local development tooling and authoring rules. They lint and govern this
+# repo; they are not part of what a consumer installs, and shipping them would
+# put a second Makefile, a second scripts/, and our house style on their disk
+# under ansible/collections/. AGENTS.md especially: a consumer's own agents read
+# whatever lands in their tree.
+# build_ignore is the ONLY exclusion list the build reads — .gitignore is not
+# consulted, so a gitignored directory still ships unless it is named here.
+# .collections/ holds `make deps`' installs AND lint.sh's symlink back to this
+# repo, so omitting it vendored the dependency collection plus a recursive copy
+# of ourselves.
+# .tmp/ is the scratch directory the plan was written in. It is gitignored and
+# never ships, which is exactly why it has to be named here: an unnamed scratch
+# directory carries the plan and the handoff into a consumer's tree.
+build_ignore:
+  - .collections
+  - .ansible
+  - .github
+  - .githooks
+  - .gitignore
+  - .ansible-lint
+  - .prettierignore
+  - .prettierrc.json
+  - .tmp
+  - AGENTS.md
+  - CLAUDE.md
+  # The glossary points at AGENTS.md, which does not ship — sending it alone
+  # ships a dangling pointer. docs/agents/ is skill configuration for authoring
+  # THIS repo (it names this repo's issue tracker), so it is the same class as
+  # AGENTS.md, not documentation a consumer can act on.
+  - CONTEXT.md
+  - docs/agents
+  - Makefile
+  - scripts
+  - tests

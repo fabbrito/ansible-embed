@@ -1,0 +1,3 @@
+---
+# Outlasts an unattended upgrade already holding the apt lock on a slow board.
+os_apt_lock_timeout: 600

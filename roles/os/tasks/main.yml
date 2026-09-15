@@ -5,15 +5,13 @@
     fail_msg: os_unattended_reboot_time must be HH:MM, got '{{ os_unattended_reboot_time }}'.
     quiet: true
 
-# unattended-upgrades is outside os_apt_packages so overriding the list keeps it.
-# lock_timeout outlasts an unattended upgrade already running on a slow board.
 - name: Install base packages
   ansible.builtin.apt:
     name: "{{ os_apt_packages + ['unattended-upgrades'] }}"
     state: present
     update_cache: true
     cache_valid_time: 3600
-    lock_timeout: 600
+    lock_timeout: "{{ os_apt_lock_timeout }}"
 
 # Validated: a syntax error in apt.conf.d breaks every apt run, unattended ones
 # included.
@@ -29,12 +27,12 @@
 - name: Remove unneeded packages
   ansible.builtin.apt:
     autoremove: true
-    lock_timeout: 600
+    lock_timeout: "{{ os_apt_lock_timeout }}"
 
 - name: Clean obsolete package files
   ansible.builtin.apt:
     autoclean: true
-    lock_timeout: 600
+    lock_timeout: "{{ os_apt_lock_timeout }}"
 
 - name: Stat systemd-timesyncd
   ansible.builtin.stat:
@@ -44,6 +42,15 @@
 - name: Configure NTP servers
   when: os_timesyncd_stat.stat.exists
   block:
+    # Read before any change: the handler restarts timesyncd only if it runs.
+    - name: Read whether timesyncd is running
+      ansible.builtin.command:
+        argv: [systemctl, status, --no-pager, --lines=0, systemd-timesyncd]
+      register: os_timesyncd_status
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
     - name: Ensure the timesyncd drop-in directory
       ansible.builtin.file:
         path: /etc/systemd/timesyncd.conf.d
@@ -91,8 +98,8 @@
   changed_when: false
   check_mode: false
 
-# Goldens pin our file; only the merged config shows an earlier drop-in
-# shadowing it. Skipped in check mode, where our file has not landed.
+# Precondition: no earlier sshd_config.d file sets these first, which would
+# silently win. Skipped in check mode, where our file has not landed.
 - name: Assert the effective sshd config
   ansible.builtin.assert:
     that:

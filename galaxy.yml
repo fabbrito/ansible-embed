@@ -85,6 +85,8 @@ build_ignore:
   # AGENTS.md, not documentation a consumer can act on.
   - CONTEXT.md
   - docs/agents
+  # Bumping the pin in roles/rclone/defaults is maintainer work, not a consumer's.
+  - docs/rclone/upgrading.md
   - Makefile
   - scripts
   - tests

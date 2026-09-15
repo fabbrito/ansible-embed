@@ -30,7 +30,7 @@ Not supported: Ubuntu and other distros numbered apart from Debian, DietPi, non-
 collections:
   - name: git+https://github.com/fabbrito/ansible-embed.git
     type: git
-    version: v1.0.0 # a tag, never a branch
+    version: v1.0.1 # a tag, never a branch
 ```
 
 Over `https` a public repo needs no credential — which is what makes this installable from a CI runner without handing

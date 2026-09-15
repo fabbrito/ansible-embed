@@ -5,6 +5,21 @@ consumers pin the tag, so a change that is not released is a change nobody gets.
 
 A released tag is never repointed.
 
+## 1.0.1
+
+### Fixed
+
+- `rclone`: removes `rclone.conf` when the R2 secrets are unset, instead of leaving the old credentials on the board.
+- `os`: restarts timesyncd after an NTP change only if it was running.
+- `preflight`: unreadable `cloud-init status` output fails with a message instead of a template error.
+- `seed`: an inventory keyed by IP fails before the output directory is created.
+
+### Changed
+
+- Drops the unused `ansible.posix` dependency.
+- `docs/rclone/upgrading.md` no longer ships in the collection.
+- README: `target` documented, role sections regrouped, vocabulary fixed.
+
 ## 1.0.0
 
 Initial release.

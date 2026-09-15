@@ -10,9 +10,9 @@ be a deliberate act with a diff to read afterwards.
 
 **What this is for.** `ansible-lint` checks the tasks and the tool's own validator checks the syntax; neither can see a
 config that is valid and says the wrong thing. The failure mode is a rendered file that passes every validator and is
-still wrong where it counts: an sshd drop-in whose effective value is not what the role claims, a journal that turns
-volatile when it was supposed to survive the reboot you are debugging, an unattended-upgrades config that matches none
-of the board's repos, an rclone remote missing the flag that keeps it from listing a bucket it cannot read.
+still wrong where it counts: an sshd drop-in whose effective value is not what the role claims, a timesyncd drop-in that
+appends to the image's servers instead of replacing them, an unattended-upgrades config that matches none of the board's
+repos, an rclone remote missing the flag that keeps it from listing a bucket it cannot read.
 
 Asserts validate the consumer's _input_. Goldens validate our _output_. A correct assert can sit in front of a template
 that renders the wrong bytes.

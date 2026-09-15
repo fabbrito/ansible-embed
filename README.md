@@ -3,9 +3,9 @@
 Baseline convergence for Debian boards, as an Ansible collection.
 
 It installs and keeps converged the layer every board needs and no board is interesting for: a cloud-init seed for first
-boot, a platform gate, OS hardening, conservative SD-card wear reduction, UUID-mounted USB storage, rclone against
-Cloudflare R2, and Tailscale for remote access. **Service roles do not live here** — they stay in the repo that owns the
-service, which is also where inventory, secrets and the converge itself live.
+boot, a platform gate, OS hardening with unattended upgrades, UUID-mounted USB storage that keeps application state off
+the SD card, rclone against Cloudflare R2, and Tailscale for remote access. **Service roles do not live here** — they
+stay in the repo that owns the service, which is also where inventory, secrets and the converge itself live.
 
 ## Platform
 

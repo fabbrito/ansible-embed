@@ -69,9 +69,9 @@ break-glass is the recovery, not the plan. _Avoid_: outage, bricking
 
 ## Storage and wear
 
-**Wear**: Write amplification on the SD card, which is what ends a cheap card's life. The baseline reduces it
-conservatively: the journal is capped and kept persistent. The aggressive tier — tmpfs logs, a volatile journal, a
-read-only root — is a decision we have not taken. _Avoid_: optimization, tuning
+**Wear**: Write amplification on the SD card, which is what ends a cheap card's life. The baseline does not tune the OS
+for it — Raspberry Pi OS already keeps the journal in RAM. What spares a card is application state (databases, logs,
+files) on a storage volume. A read-only root is not worth its cost. _Avoid_: optimization, tuning
 
 **Storage volume**: A USB stick or disk the consumer declares, mounted at a path by UUID. The unit `storage` takes as
 input; formatting and partitioning are a manual step, never this layer's. _Avoid_: disk, drive, mount

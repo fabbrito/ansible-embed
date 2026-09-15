@@ -1,7 +1,3 @@
 ---
-# No role vars. preflight reads two contract vars, so they are not declared here:
-#
-#   embed_min_debian_major  Oldest Debian major version accepted. Default 13.
-#   embed_assert_hostname   Board hostname must equal the first label of
-#                           inventory_hostname. Default true; false for an
-#                           inventory keyed by IP.
+# No role vars. Reads the contract vars embed_min_debian_major and
+# embed_assert_hostname (README, "Use").

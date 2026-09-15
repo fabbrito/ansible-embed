@@ -73,12 +73,15 @@
   check_mode: false
   when: preflight_cloud_init_stat.stat.exists
 
+# Not JSON (a crash, an old cloud-init) reads as a status the assert refuses.
 - name: Parse cloud-init status
   ansible.builtin.set_fact:
     preflight_cloud_init: >-
-      {{ preflight_cloud_init_raw.stdout | from_json
-         if preflight_cloud_init_stat.stat.exists
-         else {'status': 'not installed'} }}
+      {{ {'status': 'not installed'} if not preflight_cloud_init_stat.stat.exists
+         else preflight_cloud_init_raw.stdout | from_json
+         if preflight_cloud_init_raw.stdout is match('\s*\{')
+         else {'status': 'unreadable: ' ~ (preflight_cloud_init_raw.stderr
+                                            | default('', true) | truncate(200))} }}
 
 - name: Warn that break-glass is unavailable
   ansible.builtin.debug:
@@ -107,12 +110,17 @@
     verbosity: 1
   when: preflight_cloud_init.recoverable_errors | default({}) | length > 0
 
+- name: Name the expected hostname
+  ansible.builtin.set_fact:
+    preflight_expected_hostname: "{{ inventory_hostname.split('.') | first }}"
+  when: embed_assert_hostname | default(true) | bool
+
 - name: Assert the hostname
   ansible.builtin.assert:
-    that: ansible_facts.hostname == inventory_hostname.split('.') | first
+    that: ansible_facts.hostname == preflight_expected_hostname
     fail_msg: >-
       Board says {{ ansible_facts.hostname }}, inventory says
-      {{ inventory_hostname.split('.') | first }}: a card seeded for another
-      board? For an inventory keyed by IP, set embed_assert_hostname: false.
+      {{ preflight_expected_hostname }}: a card seeded for another board? For an
+      inventory keyed by IP, set embed_assert_hostname: false.
     quiet: true
   when: embed_assert_hostname | default(true) | bool

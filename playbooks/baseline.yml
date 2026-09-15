@@ -1,0 +1,13 @@
+---
+# The baseline every board gets. A consumer imports it and appends its own
+# group-scoped plays (README, "Use"). Scope a run with -l, not by narrowing
+# hosts.
+#
+# Role order is load-bearing.
+- name: Baseline (every board)
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    # `always`: a run scoped with --tags still refuses a wrong board.
+    - { role: fabbrito.embed.preflight, tags: [always] }

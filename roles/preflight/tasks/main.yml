@@ -1,0 +1,118 @@
+---
+# Read-only. Refuses a board before any other role changes it.
+
+# Absent on boards without a device tree.
+- name: Stat the board model
+  ansible.builtin.stat:
+    path: /proc/device-tree/model
+  register: preflight_model_stat
+
+- name: Read the board model
+  ansible.builtin.slurp:
+    src: /proc/device-tree/model
+  register: preflight_model_raw
+  when: preflight_model_stat.stat.exists
+
+# The file ends in a NUL.
+- name: Record the board model
+  ansible.builtin.set_fact:
+    preflight_board_model: >-
+      {{ (preflight_model_raw.content | b64decode | regex_replace('\x00', ''))
+         if preflight_model_stat.stat.exists else 'unknown' }}
+
+- name: Show the board model
+  ansible.builtin.debug:
+    msg: "{{ preflight_board_model }}"
+
+# Not dpkg: Raspbian's armhf userland also runs on ARMv6.
+- name: Refuse ARMv6
+  ansible.builtin.assert:
+    that: ansible_facts.architecture != 'armv6l'
+    fail_msg: >-
+      {{ preflight_board_model }} is ARMv6. Nothing here builds for GOARM=5.
+    quiet: true
+
+- name: Assert the platform
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.os_family == 'Debian'
+      - ansible_facts.service_mgr == 'systemd'
+      - >-
+        ansible_facts.distribution_major_version | int
+        >= embed_min_debian_major | default(13) | int
+    fail_msg: >-
+      {{ ansible_facts.distribution }}
+      {{ ansible_facts.distribution_version }} with
+      {{ ansible_facts.service_mgr }}. Needs Debian
+      {{ embed_min_debian_major | default(13) }}+ (or a derivative on its
+      numbering) with systemd.
+    quiet: true
+
+- name: Stat the OpenSSH server config
+  ansible.builtin.stat:
+    path: /etc/ssh/sshd_config
+  register: preflight_sshd_stat
+
+- name: Assert OpenSSH
+  ansible.builtin.assert:
+    that: preflight_sshd_stat.stat.exists
+    fail_msg: No /etc/ssh/sshd_config. Needs OpenSSH.
+    quiet: true
+
+- name: Stat cloud-init
+  ansible.builtin.stat:
+    path: /usr/bin/cloud-init
+  register: preflight_cloud_init_stat
+
+# Exit code ignored: 2 whenever cloud-init logged a warning.
+- name: Read cloud-init status
+  ansible.builtin.command: cloud-init status --format json
+  register: preflight_cloud_init_raw
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: preflight_cloud_init_stat.stat.exists
+
+- name: Parse cloud-init status
+  ansible.builtin.set_fact:
+    preflight_cloud_init: >-
+      {{ preflight_cloud_init_raw.stdout | from_json
+         if preflight_cloud_init_stat.stat.exists
+         else {'status': 'not installed'} }}
+
+- name: Warn that break-glass is unavailable
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: cloud-init is {{ preflight_cloud_init.status }}. The seed on the
+      card cannot recover this board.
+  when: preflight_cloud_init.status in ['disabled', 'not installed']
+
+- name: Assert cloud-init finished
+  ansible.builtin.assert:
+    that:
+      - preflight_cloud_init.status == 'done'
+      - preflight_cloud_init.errors | default([]) | length == 0
+    fail_msg: >-
+      cloud-init is {{ preflight_cloud_init.status }}, errors
+      {{ preflight_cloud_init.errors | default([]) }}. Still booting: wait with
+      `cloud-init status --wait`. Otherwise read `cloud-init status --long`.
+    quiet: true
+  when: preflight_cloud_init.status not in ['disabled', 'not installed']
+
+# Raspberry Pi OS always has one: its cloud.cfg names a module that does not
+# exist.
+- name: Show cloud-init recoverable errors
+  ansible.builtin.debug:
+    msg: "{{ preflight_cloud_init.recoverable_errors }}"
+    verbosity: 1
+  when: preflight_cloud_init.recoverable_errors | default({}) | length > 0
+
+- name: Assert the hostname
+  ansible.builtin.assert:
+    that: ansible_facts.hostname == inventory_hostname.split('.') | first
+    fail_msg: >-
+      Board says {{ ansible_facts.hostname }}, inventory says
+      {{ inventory_hostname.split('.') | first }}: a card seeded for another
+      board? For an inventory keyed by IP, set embed_assert_hostname: false.
+    quiet: true
+  when: embed_assert_hostname | default(true) | bool

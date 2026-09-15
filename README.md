@@ -14,6 +14,7 @@ itself live.
 | --------- | ------------------------------------------------------------------------ |
 | OS        | Debian **13 (trixie)** or newer, or a derivative on Debian's numbering   |
 | Init      | systemd                                                                  |
+| SSH       | OpenSSH server                                                           |
 | Arch      | `armhf` or `arm64`, read from `dpkg --print-architecture` (the userland) |
 | Seed      | cloud-init, seeded from the boot partition                               |
 | Reference | Raspberry Pi OS Lite trixie on a Raspberry Pi 2B — the one tested board  |
@@ -21,8 +22,7 @@ itself live.
 Other Debian boards are expected to work and are not tested. ARMv6 boards (Pi 1, Zero, Zero W, CM1) are **refused**:
 Raspbian's userland runs there, but nothing here builds for `GOARM=5`.
 
-Not supported: Ubuntu and other distros numbered apart from Debian, DietPi, Dropbear, non-systemd init, and Debian
-before trixie.
+Not supported: Ubuntu and other distros numbered apart from Debian, DietPi, non-systemd init, and Debian before trixie.
 
 ## Install
 
@@ -63,6 +63,18 @@ ansible-galaxy collection install -r requirements.yml
 
 This collection ships no inventory, no vault and no host — the contract it reads from the consumer is documented below
 as each role lands.
+
+The baseline connects as `ansible_user` with passwordless sudo, which the seed grants. `preflight` runs first, under the
+`always` tag, and changes nothing: it refuses ARMv6, an unsupported OS or init, a board without OpenSSH, a cloud-init
+that has not finished cleanly, and a hostname that does not match the inventory. A disabled or absent cloud-init only
+warns: the seed can no longer recover that board.
+
+### Optional — absent, the default stands
+
+| Var                      | Where            | What it buys                                                                                                         |
+| ------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `embed_min_debian_major` | `group_vars/all` | Default `13`. Oldest Debian major version accepted.                                                                  |
+| `embed_assert_hostname`  | `group_vars/all` | Default `true`. The hostname must equal the first label of the inventory name; `false` for an inventory keyed by IP. |
 
 ## Seed
 

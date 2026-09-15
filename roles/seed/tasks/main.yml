@@ -26,6 +26,22 @@
     fail_msg: seed_authorized_keys must be a non-empty list of public keys.
     quiet: true
 
+# Templates read these, never inventory vars, so goldens can set them.
+- name: Name the board and its user
+  ansible.builtin.set_fact:
+    seed_hostname: "{{ inventory_hostname.split('.') | first }}"
+    seed_user: "{{ ansible_user }}"
+
+- name: Assert the hostname label
+  ansible.builtin.assert:
+    that:
+      - seed_hostname is match('^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$')
+      - seed_hostname is not match('^[0-9]+$')
+    fail_msg: >-
+      '{{ seed_hostname }}', the first label of {{ inventory_hostname }}, is not
+      a hostname. An inventory keyed by IP cannot name a board.
+    quiet: true
+
 - name: Assert the output directory is named
   ansible.builtin.assert:
     that: seed_output_dir | length > 0
@@ -53,22 +69,6 @@
     state: directory
     mode: "0755"
   when: not seed_output_stat.stat.exists
-
-# Templates read these, never inventory vars, so goldens can set them.
-- name: Name the board and its user
-  ansible.builtin.set_fact:
-    seed_hostname: "{{ inventory_hostname.split('.') | first }}"
-    seed_user: "{{ ansible_user }}"
-
-- name: Assert the hostname label
-  ansible.builtin.assert:
-    that:
-      - seed_hostname is match('^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$')
-      - seed_hostname is not match('^[0-9]+$')
-    fail_msg: >-
-      '{{ seed_hostname }}', the first label of {{ inventory_hostname }}, is not
-      a hostname. An inventory keyed by IP cannot name a board.
-    quiet: true
 
 - name: Render user-data
   ansible.builtin.template:

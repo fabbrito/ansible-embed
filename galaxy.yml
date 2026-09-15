@@ -46,10 +46,8 @@ tags:
   - hardening
   - backup
 
-# Mirrors the bounds the source repo pinned. `ansible.posix` alone: sysctl and
-# mount are what the roles need, and no v1 role justifies a second dependency.
-dependencies:
-  ansible.posix: ">=2.0.0,<3.0.0"
+# None: every role uses ansible.builtin only.
+dependencies: {}
 
 repository: https://github.com/fabbrito/ansible-embed
 documentation: https://github.com/fabbrito/ansible-embed/blob/master/README.md

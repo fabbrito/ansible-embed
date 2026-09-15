@@ -1,0 +1,9 @@
+---
+# No secrets: the role renders no rclone.conf.
+#
+# Vault keys are not in the role defaults, so each fixture sets all five.
+rclone_r2_access_key_id: ""
+rclone_r2_secret_access_key: ""
+rclone_r2_endpoint: ""
+rclone_crypt_password: ""
+rclone_crypt_password2: ""

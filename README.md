@@ -124,6 +124,19 @@ which strips the image's passwordless sudo and leaves nothing to converge with.
 | `seed_timezone`   | `group_vars/all` | IANA zone. Empty leaves the image's.                       |
 | `seed_generation` | `host_vars`      | Default `1`. A new value re-applies the seed on next boot. |
 
+### `rclone`
+
+Installs a pinned upstream rclone (Debian's is too old for R2), verified by sha256, for `armhf` or `arm64`. Renders
+`/root/.config/rclone/rclone.conf` only when the R2 secrets are set. Bumping the pin: `docs/rclone/upgrading.md`.
+
+#### Optional — absent, the role skips
+
+| Var                                                                            | Where        | What it buys                                                                                              |
+| ------------------------------------------------------------------------------ | ------------ | --------------------------------------------------------------------------------------------------------- |
+| `rclone_r2_access_key_id`, `rclone_r2_secret_access_key`, `rclone_r2_endpoint` | vault        | The `r2` remote. All three or none, asserted.                                                             |
+| `rclone_crypt_password`, `rclone_crypt_password2`                              | vault        | The `r2crypt` wrapper over `rclone_crypt_target`. Both or neither, asserted. `docs/rclone/encryption.md`. |
+| `rclone_crypt_target`                                                          | `group_vars` | Default `r2:backups`. What `r2crypt` encrypts into.                                                       |
+
 ## Storage
 
 Application state belongs on a USB stick, not the SD card.

@@ -1,0 +1,30 @@
+---
+# Pinned upstream .deb per userland arch (`dpkg --print-architecture`). Debian
+# trixie ships 1.60, too old for R2. Bump the version and every hash together,
+# after verifying rclone's signed SHA256SUMS: docs/rclone/upgrading.md.
+rclone_version: v1.75.1
+rclone_debs:
+  armhf:
+    asset: linux-arm-v7
+    sha256: fd55fef473a0645c98f0314e72936b3cc08283a511e3a89d74996a17ce6f51d7
+  arm64:
+    asset: linux-arm64
+    sha256: 773f3a76615f91f7d4654183a537afddce3343c8d99ac1d74984f060f2ade2d9
+
+# What the [r2crypt] wrapper encrypts into. Services write to `r2crypt:<path>`.
+rclone_crypt_target: r2:backups
+
+# Vault keys, set in the consumer, never declared here. Absent, the role installs
+# rclone and renders no rclone.conf.
+#
+# [r2] remote, named `r2` because backup roles address it so. All three or none,
+# asserted:
+#   rclone_r2_access_key_id
+#   rclone_r2_secret_access_key
+#   rclone_r2_endpoint
+#
+# [r2crypt] wrapper, rendered only with [r2]. Both or neither, asserted: a missing
+# password2 keys the remote differently and the backups cannot be read back.
+# Obscured form (`rclone obscure`): docs/rclone/encryption.md.
+#   rclone_crypt_password
+#   rclone_crypt_password2

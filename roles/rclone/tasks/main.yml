@@ -1,0 +1,62 @@
+---
+# Before the install touches the board.
+- name: Check the rclone secrets
+  ansible.builtin.include_tasks: secrets.yml
+
+- name: Read the userland architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: rclone_arch
+  changed_when: false
+  check_mode: false
+
+- name: Assert a pinned .deb exists for the architecture
+  ansible.builtin.assert:
+    that: rclone_arch.stdout in rclone_debs
+    fail_msg: >-
+      No pinned rclone .deb for {{ rclone_arch.stdout }}; rclone_debs covers
+      {{ rclone_debs.keys() | list | join(', ') }}.
+    quiet: true
+
+- name: Name the pinned .deb
+  ansible.builtin.set_fact:
+    rclone_deb: "{{ rclone_debs[rclone_arch.stdout] }}"
+    rclone_deb_path: "/var/cache/rclone-{{ rclone_version }}-{{ rclone_debs[rclone_arch.stdout].asset }}.deb"
+
+# The committed hash is the trust anchor; the board needs no gpg key. /var/cache
+# survives a reboot, so a later converge downloads nothing.
+- name: Download the pinned rclone .deb
+  ansible.builtin.get_url:
+    url: "https://downloads.rclone.org/{{ rclone_version }}/rclone-{{ rclone_version }}-{{ rclone_deb.asset }}.deb"
+    checksum: "sha256:{{ rclone_deb.sha256 }}"
+    dest: "{{ rclone_deb_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+# Through dpkg so apt records the version and never swaps in the distro's 1.60.
+# Skipped in check mode, where the download above did not happen.
+- name: Install rclone from the pinned .deb
+  ansible.builtin.apt:
+    deb: "{{ rclone_deb_path }}"
+    lock_timeout: 600
+  when: not ansible_check_mode
+
+# Backups run as root, so the config lives in /root.
+- name: Ensure the rclone config directory
+  ansible.builtin.file:
+    path: /root/.config/rclone
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when: rclone_r2_set_count | int == 3
+
+- name: Render rclone.conf
+  ansible.builtin.template:
+    src: rclone.conf.j2
+    dest: /root/.config/rclone/rclone.conf
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  when: rclone_r2_set_count | int == 3

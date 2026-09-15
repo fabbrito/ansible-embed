@@ -12,3 +12,4 @@
     # `always`: a run scoped with --tags still refuses a wrong board.
     - { role: fabbrito.embed.preflight, tags: [always] }
     - { role: fabbrito.embed.os, tags: [os] }
+    - { role: fabbrito.embed.rclone, tags: [rclone] }

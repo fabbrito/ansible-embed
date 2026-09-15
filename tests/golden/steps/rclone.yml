@@ -1,5 +1,5 @@
 ---
-# THE ROLE'S OWN FILE: the secret counts decide whether rclone.conf and its
+# THE ROLE'S OWN FILE: its enabled flags decide whether rclone.conf and its
 # [r2crypt] stanza render, and a copy here could drift from the role.
 - name: Count the rclone secrets
   ansible.builtin.include_tasks: "{{ golden_repo }}/roles/rclone/tasks/secrets.yml"
@@ -10,7 +10,7 @@
     src: "{{ golden_repo }}/roles/rclone/templates/rclone.conf.j2"
     dest: "{{ golden_case_out }}/rclone-conf"
     mode: "0600"
-  when: rclone_r2_set_count | int == 3
+  when: rclone_r2_enabled
 
 # Pins the skip as bytes; an empty case directory is not tracked by git.
 - name: Record that rclone.conf is skipped
@@ -18,4 +18,4 @@
     dest: "{{ golden_case_out }}/rclone-conf.skipped"
     content: "not rendered: R2 secrets absent\n"
     mode: "0644"
-  when: rclone_r2_set_count | int != 3
+  when: not rclone_r2_enabled

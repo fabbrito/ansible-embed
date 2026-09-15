@@ -39,7 +39,7 @@ Three rules the layout does not enforce:
   sorted after it. So every fixture that cares about such a var sets it explicitly, including to empty. Without that, a
   case meant to pin one branch quietly becomes a second copy of the case before it.
 - **`steps/` includes the role's own task file where a derivation is security-critical**, rather than restating it. The
-  secret counts in `rclone` are the worked example: they decide whether `rclone.conf` and its `[r2crypt]` stanza render,
+  secret flags in `rclone` are the worked example: they decide whether `rclone.conf` and its `[r2crypt]` stanza render,
   and a copy would drift from the role silently — the harness would keep rendering a stanza the role stopped gating.
 - **Every value in a fixture is fake, and looks it.** The roles read real secrets from a consumer's vault; this repo has
   none and must never acquire one. Where a template renders a secret, the fixture supplies something no one could

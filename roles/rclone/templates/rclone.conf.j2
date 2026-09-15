@@ -10,7 +10,7 @@ access_key_id = {{ rclone_r2_access_key_id }}
 secret_access_key = {{ rclone_r2_secret_access_key }}
 endpoint = {{ rclone_r2_endpoint }}
 no_check_bucket = true
-{% if rclone_crypt_set_count | int == 2 %}
+{% if rclone_crypt_enabled %}
 
 # Plain directory names keep R2 lifecycle prefix rules matching. Lose these
 # passwords and the backups are unrecoverable.

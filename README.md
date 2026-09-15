@@ -3,7 +3,7 @@
 Baseline convergence for Debian boards, as an Ansible collection.
 
 It installs and keeps converged the layer every board needs and no board is interesting for: a cloud-init seed for first
-boot, a platform gate, OS hardening with unattended upgrades, and rclone against Cloudflare R2. **Service roles do not
+boot, a platform check, OS hardening with unattended upgrades, and rclone against Cloudflare R2. **Service roles do not
 live here** — they stay in the repo that owns the service, which is also where inventory, secrets and the converge
 itself live.
 
@@ -33,9 +33,9 @@ collections:
     version: v1.0.0 # a tag, never a branch
 ```
 
-The repo is public, so `https` needs no credential — which is what makes this installable from a CI runner without
-handing it a deploy key. Declare where collections live **before** installing, or Ansible will not find what you just
-installed and the FQCNs below fail to resolve:
+Over `https` a public repo needs no credential — which is what makes this installable from a CI runner without handing
+it a deploy key. Declare where collections live **before** installing, or Ansible will not find what you just installed
+and the FQCNs below fail to resolve:
 
 ```ini
 # ansible.cfg, at the consuming repo's root
@@ -60,15 +60,17 @@ ansible-galaxy collection install -r requirements.yml
     - { role: my_service, tags: [my_service] }
 ```
 
-This collection ships no inventory, no vault and no host — the contract it reads from the consumer is documented below
-as each role lands.
+This collection ships no inventory, no vault and no host — the contract it reads from the consumer is documented below.
 
-The baseline connects as `ansible_user` with passwordless sudo, which the seed grants. `preflight` runs first, under the
-`always` tag, and changes nothing: it refuses ARMv6, an unsupported OS or init, a board without OpenSSH, a cloud-init
-that has not finished cleanly, and a hostname that does not match the inventory. A disabled or absent cloud-init only
-warns: the seed can no longer recover that board.
+The baseline connects as `ansible_user` with passwordless sudo, which the seed grants.
 
-### Optional — absent, the default stands
+### `preflight`
+
+`preflight` runs first, under the `always` tag, and changes nothing: it refuses ARMv6, an unsupported OS or init, a
+board without OpenSSH, a cloud-init that has not finished cleanly, and a hostname that does not match the inventory. A
+disabled or absent cloud-init only warns: the seed can no longer recover that board.
+
+#### Optional — absent, the default stands
 
 | Var                      | Where            | What it buys                                                                                                         |
 | ------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -84,12 +86,28 @@ Unattended upgrades run weekly from Debian, Raspbian and Raspberry Pi Foundation
 `os_unattended_reboot_time` (board local time, the seed's timezone) only when an upgrade requires it. A dry-run on a
 board without `python3-apt` fails at the package task; the first converge installs it.
 
+#### Optional — absent, the default stands
+
 | Var                         | Where            | What it buys                                                         |
 | --------------------------- | ---------------- | -------------------------------------------------------------------- |
 | `os_apt_packages`           | `group_vars`     | Default `[ca-certificates, avahi-daemon]`. Installed, never removed. |
 | `os_unattended_origins`     | `group_vars`     | Default `[]`. Extra Origins-Pattern entries for other repos.         |
 | `os_unattended_reboot_time` | `group_vars/all` | Default `"04:00"`, `HH:MM` local.                                    |
 | `os_ntp_servers`            | `group_vars/all` | Default `[]`. systemd-timesyncd servers; empty leaves the image's.   |
+
+### `rclone`
+
+Installs a pinned upstream rclone (Debian's is too old for R2), verified by sha256, for `armhf` or `arm64`. Renders
+`/root/.config/rclone/rclone.conf` when the R2 secrets are set, and removes it when they are not. Changing the rclone
+version: `docs/rclone/upgrading.md`, in the repo.
+
+#### Optional — absent, the role skips
+
+| Var                                                                            | Where        | What it buys                                                                                              |
+| ------------------------------------------------------------------------------ | ------------ | --------------------------------------------------------------------------------------------------------- |
+| `rclone_r2_access_key_id`, `rclone_r2_secret_access_key`, `rclone_r2_endpoint` | vault        | The `r2` remote. All three or none, asserted.                                                             |
+| `rclone_crypt_password`, `rclone_crypt_password2`                              | vault        | The `r2crypt` wrapper over `rclone_crypt_target`. Both or neither, asserted. `docs/rclone/encryption.md`. |
+| `rclone_crypt_target`                                                          | `group_vars` | Default `r2:backups`. What `r2crypt` encrypts into.                                                       |
 
 ## Seed
 
@@ -103,7 +121,7 @@ It writes `user-data` and `meta-data` into `<dir>`: a local directory to copy on
 the mounted partition itself. The seed names the board after the first label of its inventory name and creates
 `ansible_user` with passwordless sudo and your keys; no password, password SSH off, SSH enabled.
 
-Recovery: edit or regenerate the seed, bump `seed_generation`, boot. cloud-init applies it again, and the board's SSH
+Break-glass: edit or regenerate the seed, bump `seed_generation`, boot. cloud-init applies it again, and the board's SSH
 host keys change.
 
 A hand-made seed works if it ends in the same state. Raspberry Pi Imager's "no passwordless sudo" writes `sudo: null`,
@@ -113,6 +131,7 @@ which strips the image's passwordless sudo and leaves nothing to converge with.
 
 | Var                    | Where                      | What it buys                                                                                   |
 | ---------------------- | -------------------------- | ---------------------------------------------------------------------------------------------- |
+| `target`               | `-e`                       | The one board to render. Unset matches no host.                                                |
 | `ansible_user`         | inventory                  | The account the seed creates and converges connect as. Not root.                               |
 | `seed_authorized_keys` | `group_vars` / `host_vars` | Public keys for that account. Asserted a non-empty list.                                       |
 | `seed_output_dir`      | `-e`                       | Directory to write into, relative to the working directory; created when absent. Asserted set. |
@@ -123,19 +142,6 @@ which strips the image's passwordless sudo and leaves nothing to converge with.
 | ----------------- | ---------------- | ---------------------------------------------------------- |
 | `seed_timezone`   | `group_vars/all` | IANA zone. Empty leaves the image's.                       |
 | `seed_generation` | `host_vars`      | Default `1`. A new value re-applies the seed on next boot. |
-
-### `rclone`
-
-Installs a pinned upstream rclone (Debian's is too old for R2), verified by sha256, for `armhf` or `arm64`. Renders
-`/root/.config/rclone/rclone.conf` only when the R2 secrets are set. Bumping the pin: `docs/rclone/upgrading.md`.
-
-#### Optional — absent, the role skips
-
-| Var                                                                            | Where        | What it buys                                                                                              |
-| ------------------------------------------------------------------------------ | ------------ | --------------------------------------------------------------------------------------------------------- |
-| `rclone_r2_access_key_id`, `rclone_r2_secret_access_key`, `rclone_r2_endpoint` | vault        | The `r2` remote. All three or none, asserted.                                                             |
-| `rclone_crypt_password`, `rclone_crypt_password2`                              | vault        | The `r2crypt` wrapper over `rclone_crypt_target`. Both or neither, asserted. `docs/rclone/encryption.md`. |
-| `rclone_crypt_target`                                                          | `group_vars` | Default `r2:backups`. What `r2crypt` encrypts into.                                                       |
 
 ## Storage
 

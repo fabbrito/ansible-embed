@@ -24,7 +24,7 @@ authors:
 
 description: >-
   Baseline convergence for Debian boards — a cloud-init seed for
-  first boot, platform gate, OS hardening with unattended upgrades, rclone/R2
+  first boot, platform check, OS hardening with unattended upgrades, rclone/R2
   backups, and a runbook for USB storage that spares the SD card. Service roles
   stay in the consuming repo.
 
@@ -85,7 +85,7 @@ build_ignore:
   # AGENTS.md, not documentation a consumer can act on.
   - CONTEXT.md
   - docs/agents
-  # Bumping the pin in roles/rclone/defaults is maintainer work, not a consumer's.
+  # Changing the rclone version in roles/rclone/defaults is maintainer work.
   - docs/rclone/upgrading.md
   - Makefile
   - scripts

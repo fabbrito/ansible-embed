@@ -1,9 +1,9 @@
 # Upgrading rclone
 
-`roles/rclone` installs a pinned upstream `.deb` per architecture. Moving the pin is the only way rclone changes version
-on a board.
+`roles/rclone` installs a fixed upstream `.deb` per architecture. Changing `rclone_version` and its hashes is the only
+way rclone changes version on a board.
 
-## Why pinned
+## Why a fixed version
 
 - Debian trixie and Raspbian ship rclone 1.60 (2022), old enough to hit spurious `501 NotImplemented` on R2.
 - rclone's `install.sh` overwrites `/usr/bin/rclone` behind dpkg, unpinned and unverified; any apt touch of `rclone`

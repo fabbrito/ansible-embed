@@ -7,12 +7,12 @@ A released tag is never repointed.
 
 ## 1.0.0
 
-Initial release. Each role adds its line in the commit that lands it.
+Initial release.
 
+- `seed` playbook and role: render a board's cloud-init `user-data` and `meta-data` from inventory.
 - `baseline` playbook and `preflight` role: refuse an unsupported board before anything changes it.
 - `os` role: weekly unattended upgrades with reboot when required, base packages, NTP servers, key-only sshd without
   root login.
-- `docs/storage/`: runbook for attaching persistent USB storage.
 - `rclone` role: pinned, checksum-verified upstream `.deb` per arch; `[r2]` remote and optional `[r2crypt]` wrapper from
   vault secrets.
-- `seed` playbook and role: render a board's cloud-init `user-data` and `meta-data` from inventory.
+- `docs/storage/`: runbook for attaching persistent USB storage.

@@ -3,9 +3,9 @@
 Baseline convergence for Debian boards, as an Ansible collection.
 
 It installs and keeps converged the layer every board needs and no board is interesting for: a cloud-init seed for first
-boot, a platform gate, OS hardening with unattended upgrades, rclone against Cloudflare R2, and Tailscale for remote
-access. **Service roles do not live here** — they stay in the repo that owns the service, which is also where inventory,
-secrets and the converge itself live.
+boot, a platform gate, OS hardening with unattended upgrades, and rclone against Cloudflare R2. **Service roles do not
+live here** — they stay in the repo that owns the service, which is also where inventory, secrets and the converge
+itself live.
 
 ## Platform
 
@@ -53,11 +53,11 @@ ansible-galaxy collection install -r requirements.yml
 # playbooks/site.yml, in the consuming repo
 - import_playbook: fabbrito.embed.baseline
 
-- name: Tailscale
-  hosts: tailscale_hosts
+- name: My service
+  hosts: my_service_hosts
   become: true
   roles:
-    - { role: fabbrito.embed.tailscale, tags: [tailscale] }
+    - { role: my_service, tags: [my_service] }
 ```
 
 This collection ships no inventory, no vault and no host — the contract it reads from the consumer is documented below

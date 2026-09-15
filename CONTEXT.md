@@ -73,11 +73,11 @@ break-glass is the recovery, not the plan. _Avoid_: outage, bricking
 for it — Raspberry Pi OS already keeps the journal in RAM. What spares a card is application state (databases, logs,
 files) on a storage volume. A read-only root is not worth its cost. _Avoid_: optimization, tuning
 
-**Storage volume**: A USB stick or disk the consumer declares, mounted at a path by UUID. The unit `storage` takes as
-input; formatting and partitioning are a manual step, never this layer's. _Avoid_: disk, drive, mount
+**Storage volume**: A USB stick or disk mounted at a fixed path by filesystem UUID, prepared by hand (`docs/storage/`).
+The collection neither formats nor mounts one. _Avoid_: disk, drive, mount
 
-**Mount-is-real guard**: The check that a path is genuinely a mount point after mounting it. Without it a missing stick
-leaves writes landing silently on the SD card — the failure is invisible until the card fills. _Avoid_: verification,
+**Mount-point guard**: The empty mount point made immutable, so writes fail while the stick is absent. Without it a
+missing stick leaves writes landing silently on the SD card — invisible until the card fills. _Avoid_: verification,
 sanity check
 
 ## Remote access

@@ -3,9 +3,9 @@
 Baseline convergence for Debian boards, as an Ansible collection.
 
 It installs and keeps converged the layer every board needs and no board is interesting for: a cloud-init seed for first
-boot, a platform gate, OS hardening with unattended upgrades, UUID-mounted USB storage that keeps application state off
-the SD card, rclone against Cloudflare R2, and Tailscale for remote access. **Service roles do not live here** — they
-stay in the repo that owns the service, which is also where inventory, secrets and the converge itself live.
+boot, a platform gate, OS hardening with unattended upgrades, rclone against Cloudflare R2, and Tailscale for remote
+access. **Service roles do not live here** — they stay in the repo that owns the service, which is also where inventory,
+secrets and the converge itself live.
 
 ## Platform
 
@@ -123,6 +123,12 @@ which strips the image's passwordless sudo and leaves nothing to converge with.
 | ----------------- | ---------------- | ---------------------------------------------------------- |
 | `seed_timezone`   | `group_vars/all` | IANA zone. Empty leaves the image's.                       |
 | `seed_generation` | `host_vars`      | Default `1`. A new value re-applies the seed on next boot. |
+
+## Storage
+
+Application state belongs on a USB stick, not the SD card.
+[`docs/storage/persistent-usb-storage.md`](docs/storage/persistent-usb-storage.md) attaches one by filesystem UUID: same
+path in any port, and loud when the stick is absent.
 
 ## Development
 

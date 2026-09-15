@@ -1,0 +1,23 @@
+# Rendered by Ansible — do not edit on host.
+# Source: fabbrito.embed collection — roles/os/templates/52embed-unattended-upgrades.j2
+#
+# Sorts after the package's 20auto-upgrades and 50unattended-upgrades: values
+# here win, lists append.
+
+# Days. The daily timers do real work once a week, to spare the card.
+APT::Periodic::Update-Package-Lists "7";
+APT::Periodic::Unattended-Upgrade "7";
+APT::Periodic::AutocleanInterval "7";
+
+# The package's defaults match origin=Debian only. Raspbian has no separate
+# security suite: its stable updates carry the fixes.
+Unattended-Upgrade::Origins-Pattern {
+  "origin=Raspbian,codename=${distro_codename},label=Raspbian";
+  "origin=Raspberry Pi Foundation,codename=${distro_codename},label=Raspberry Pi Foundation";
+  "origin=Example,codename=${distro_codename}";
+};
+
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+# Only when an upgrade leaves /var/run/reboot-required.
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "02:30";

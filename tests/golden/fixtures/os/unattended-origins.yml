@@ -1,0 +1,6 @@
+---
+# Extra origins append to the pattern list; reboot time moved.
+os_unattended_origins:
+  - origin=Example,codename=${distro_codename}
+os_unattended_reboot_time: "02:30"
+os_ntp_servers: []

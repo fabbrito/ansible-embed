@@ -3,10 +3,9 @@
 Baseline convergence for Debian boards, as an Ansible collection.
 
 It installs and keeps converged the layer every board needs and no board is interesting for: a cloud-init seed for first
-boot, a platform gate, OS hardening, conservative SD-card wear reduction, clock behaviour on a board with no real-time
-clock, UUID-mounted USB storage, rclone against Cloudflare R2, and Tailscale for remote access. **Service roles do not
-live here** — they stay in the repo that owns the service, which is also where inventory, secrets and the converge
-itself live.
+boot, a platform gate, OS hardening, conservative SD-card wear reduction, UUID-mounted USB storage, rclone against
+Cloudflare R2, and Tailscale for remote access. **Service roles do not live here** — they stay in the repo that owns the
+service, which is also where inventory, secrets and the converge itself live.
 
 ## Platform
 
@@ -75,6 +74,22 @@ warns: the seed can no longer recover that board.
 | ------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `embed_min_debian_major` | `group_vars/all` | Default `13`. Oldest Debian major version accepted.                                                                  |
 | `embed_assert_hostname`  | `group_vars/all` | Default `true`. The hostname must equal the first label of the inventory name; `false` for an inventory keyed by IP. |
+
+### `os`
+
+Installs base packages and unattended-upgrades, sets NTP servers when given, and hardens sshd: keys only, no root login,
+no X forwarding. Converge as the seeded user with a key; a password login is refused once sshd reloads.
+
+Unattended upgrades run weekly from Debian, Raspbian and Raspberry Pi Foundation repos, and reboot at
+`os_unattended_reboot_time` (board local time, the seed's timezone) only when an upgrade requires it. A dry-run on a
+board without `python3-apt` fails at the package task; the first converge installs it.
+
+| Var                         | Where            | What it buys                                                         |
+| --------------------------- | ---------------- | -------------------------------------------------------------------- |
+| `os_apt_packages`           | `group_vars`     | Default `[ca-certificates, avahi-daemon]`. Installed, never removed. |
+| `os_unattended_origins`     | `group_vars`     | Default `[]`. Extra Origins-Pattern entries for other repos.         |
+| `os_unattended_reboot_time` | `group_vars/all` | Default `"04:00"`, `HH:MM` local.                                    |
+| `os_ntp_servers`            | `group_vars/all` | Default `[]`. systemd-timesyncd servers; empty leaves the image's.   |
 
 ## Seed
 

@@ -51,7 +51,7 @@ board; the dry-run and second converge are the consumer's, so write for them. `R
   probes.
 - No lock-out: sshd validated before reload; the tailnet is never the only door.
 - Break-glass intact: cloud-init stays enabled, the seed stays on the card.
-- Reboots and upgrades belong to the operator; roles schedule neither.
+- Upgrades and their reboots run through unattended-upgrades, configured in `os`; no other role schedules either.
 - Rendered files open with `# Rendered by Ansible — do not edit on host` and the source path.
 - Playbook order sequences roles; no meta dependencies.
 

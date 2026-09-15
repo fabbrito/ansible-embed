@@ -1,0 +1,20 @@
+---
+# What roles/os/tasks/main.yml renders.
+- name: Render the sshd drop-in
+  ansible.builtin.template:
+    src: "{{ golden_repo }}/roles/os/templates/10-embed-hardening.conf.j2"
+    dest: "{{ golden_case_out }}/10-embed-hardening.conf"
+    mode: "0644"
+
+- name: Render the NTP drop-in
+  ansible.builtin.template:
+    src: "{{ golden_repo }}/roles/os/templates/99-embed-ntp.conf.j2"
+    dest: "{{ golden_case_out }}/99-embed-ntp.conf"
+    mode: "0644"
+  when: os_ntp_servers | length > 0
+
+- name: Render the unattended-upgrades config
+  ansible.builtin.template:
+    src: "{{ golden_repo }}/roles/os/templates/52embed-unattended-upgrades.j2"
+    dest: "{{ golden_case_out }}/52embed-unattended-upgrades"
+    mode: "0644"

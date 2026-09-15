@@ -1,0 +1,3 @@
+---
+# Role defaults: sshd drop-in only, no NTP drop-in.
+os_ntp_servers: []

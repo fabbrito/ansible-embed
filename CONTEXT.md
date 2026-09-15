@@ -80,10 +80,6 @@ input; formatting and partitioning are a manual step, never this layer's. _Avoid
 leaves writes landing silently on the SD card — the failure is invisible until the card fills. _Avoid_: verification,
 sanity check
 
-**Stale clock**: What a board believes on boot before NTP corrects it — the last time timesyncd saved, hours or days
-behind on a board that was off. apt refuses Release files it thinks are not yet valid until then, which is why the
-baseline disables `Check-Date`. _Avoid_: wrong time, clock drift
-
 ## Remote access
 
 **Tailnet**: The private network Tailscale joins a board to. It is additive: the LAN SSH path stays reachable and the

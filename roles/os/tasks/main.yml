@@ -1,0 +1,111 @@
+---
+- name: Assert the reboot time
+  ansible.builtin.assert:
+    that: os_unattended_reboot_time is match('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+    fail_msg: os_unattended_reboot_time must be HH:MM, got '{{ os_unattended_reboot_time }}'.
+    quiet: true
+
+# unattended-upgrades is outside os_apt_packages so overriding the list keeps it.
+# lock_timeout outlasts an unattended upgrade already running on a slow board.
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ os_apt_packages + ['unattended-upgrades'] }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+    lock_timeout: 600
+
+# Validated: a syntax error in apt.conf.d breaks every apt run, unattended ones
+# included.
+- name: Configure unattended upgrades
+  ansible.builtin.template:
+    src: 52embed-unattended-upgrades.j2
+    dest: /etc/apt/apt.conf.d/52embed-unattended-upgrades
+    mode: "0644"
+    validate: /usr/bin/apt-config -c %s dump
+
+# Separate tasks: apt ignores autoclean when packages are named, and exits after
+# the first cleanup it runs.
+- name: Remove unneeded packages
+  ansible.builtin.apt:
+    autoremove: true
+    lock_timeout: 600
+
+- name: Clean obsolete package files
+  ansible.builtin.apt:
+    autoclean: true
+    lock_timeout: 600
+
+- name: Stat systemd-timesyncd
+  ansible.builtin.stat:
+    path: /usr/lib/systemd/system/systemd-timesyncd.service
+  register: os_timesyncd_stat
+
+- name: Configure NTP servers
+  when: os_timesyncd_stat.stat.exists
+  block:
+    - name: Ensure the timesyncd drop-in directory
+      ansible.builtin.file:
+        path: /etc/systemd/timesyncd.conf.d
+        state: directory
+        mode: "0755"
+      when: os_ntp_servers | length > 0
+
+    - name: Render the NTP servers
+      ansible.builtin.template:
+        src: 99-embed-ntp.conf.j2
+        dest: /etc/systemd/timesyncd.conf.d/99-embed-ntp.conf
+        mode: "0644"
+      when: os_ntp_servers | length > 0
+      notify: Restart timesyncd
+
+    - name: Remove the NTP servers
+      ansible.builtin.file:
+        path: /etc/systemd/timesyncd.conf.d/99-embed-ntp.conf
+        state: absent
+      when: os_ntp_servers | length == 0
+      notify: Restart timesyncd
+
+# PermitRootLogin no would cut the connection this converge came in on.
+- name: Assert the converge does not connect as root
+  ansible.builtin.assert:
+    that: ansible_facts.env.SUDO_USER | default('root') != 'root'
+    fail_msg: >-
+      Connected as root. The hardening below refuses root SSH; connect as the
+      seeded user (ansible_user) instead.
+    quiet: true
+
+# -G parses without host keys. Validated alone, so a syntax error never lands
+# for the next sshd start to trip on.
+- name: Harden sshd
+  ansible.builtin.template:
+    src: 10-embed-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-embed-hardening.conf
+    mode: "0644"
+    validate: /usr/sbin/sshd -G -f %s
+  notify: Reload sshd
+
+- name: Read the effective sshd config
+  ansible.builtin.command: /usr/sbin/sshd -G
+  register: os_sshd_effective
+  changed_when: false
+  check_mode: false
+
+# Goldens pin our file; only the merged config shows an earlier drop-in
+# shadowing it. Skipped in check mode, where our file has not landed.
+- name: Assert the effective sshd config
+  ansible.builtin.assert:
+    that:
+      - "'passwordauthentication no' in os_sshd_effective.stdout_lines"
+      - "'kbdinteractiveauthentication no' in os_sshd_effective.stdout_lines"
+      - "'permitrootlogin no' in os_sshd_effective.stdout_lines"
+      - "'x11forwarding no' in os_sshd_effective.stdout_lines"
+    fail_msg: >-
+      sshd -G does not show the hardening: a file sorting before
+      10-embed-hardening.conf in /etc/ssh/sshd_config.d sets these first.
+    quiet: true
+  when: not ansible_check_mode
+
+# A later role failing must not leave sshd on the old config until a reboot.
+- name: Apply sshd and timesyncd changes now
+  ansible.builtin.meta: flush_handlers

@@ -10,4 +10,6 @@ A released tag is never repointed.
 Initial release. Each role adds its line in the commit that lands it.
 
 - `baseline` playbook and `preflight` role: refuse an unsupported board before anything changes it.
+- `os` role: weekly unattended upgrades with reboot when required, base packages, NTP servers, key-only sshd without
+  root login.
 - `seed` playbook and role: render a board's cloud-init `user-data` and `meta-data` from inventory.

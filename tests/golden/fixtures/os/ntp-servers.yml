@@ -1,0 +1,5 @@
+---
+# NTP servers set: the drop-in resets earlier lists, then sets ours.
+os_ntp_servers:
+  - 0.pool.example
+  - 1.pool.example

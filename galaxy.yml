@@ -24,9 +24,9 @@ authors:
 
 description: >-
   Baseline convergence for Debian boards — a cloud-init seed for
-  first boot, platform gate, OS hardening, SD-card wear reduction, clock
-  behaviour without an RTC, UUID-mounted USB state, rclone/R2 backups, and
-  Tailscale. Service roles stay in the consuming repo.
+  first boot, platform gate, OS hardening, SD-card wear reduction,
+  UUID-mounted USB state, rclone/R2 backups, and Tailscale. Service roles stay
+  in the consuming repo.
 
 # Both, and they do coexist — each answers a different reader. `license` is the
 # SPDX id a tool matches on (Galaxy's search, a consumer's licence audit);

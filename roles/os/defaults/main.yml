@@ -1,0 +1,16 @@
+---
+# Installed, never removed. unattended-upgrades is installed regardless.
+os_apt_packages:
+  - ca-certificates
+  - avahi-daemon # reach the board as <hostname>.local
+
+# Extra unattended-upgrades Origins-Pattern entries, for repos beyond Debian and
+# Raspberry Pi OS, e.g. "origin=Armbian,codename=${distro_codename}".
+os_unattended_origins: []
+
+# Local time for a reboot an upgrade requires. Asserted HH:MM.
+os_unattended_reboot_time: "04:00"
+
+# NTP servers for systemd-timesyncd. Empty removes ours and the image default
+# stands. Skipped on a board without timesyncd.
+os_ntp_servers: []

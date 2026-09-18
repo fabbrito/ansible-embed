@@ -67,7 +67,7 @@ board; the dry-run and second converge are the consumer's, so write for them. `R
 - [YSAP style](https://style.ysap.sh), 80 columns.
 - `set -uo pipefail` with explicit checks (`cd "$dir" || exit 1`); errexit never.
 - `scripts/` and `.githooks/` need bash 4.4+, the hook engine's own floor; board-side shell may assume GNU userland.
-- Make recipes delegate to `scripts/`.
+- Make recipes delegate — to `scripts/`, or to the vendored engine. Logic never accumulates in Make syntax.
 
 ## Altitude
 

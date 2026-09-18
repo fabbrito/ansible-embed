@@ -3,20 +3,24 @@
 Ansible collection: roles and playbooks that converge Debian boards, plus the cloud-init seed that first-boots them.
 Tested on Raspberry Pi OS Lite; keep roles Debian-generic and gate board-specific work on a fact. You never reach a
 board; the dry-run and second converge are the consumer's, so write for them. `README.md` is the consumer contract,
-`CONTEXT.md` the vocabulary, `docs/adr/` the decisions.
+`CONTEXT.md` the vocabulary, `docs/decisions.md` what is settled.
 
 **Be concise, in English.** Code, comments, docs, commits: the fewest words that carry the fact.
 
 ## Workflow
 
 1. Once per clone: `make deps && make hooks`. `make help` lists the rest.
-2. Before changing a role, read its `defaults/main.yml` and the ADRs covering it.
+2. Before changing a role, read its `defaults/main.yml` and the comments on the tasks you touch.
 3. Touched a template: fixture for the branch, `make golden-update`, read the diff (`tests/README.md`).
-4. Done: `make check` and `make test` green, change committed. Hooks enforce the first and grade the message.
+4. Done: `make check` green and committed — the hooks enforce it and grade the message. `make test` and `make sanity`
+   are release legs; `make release` runs them.
 
 ## Commits
 
 - `type(scope): subject`, scope reused from `git log`. One change per commit.
+- The hook grades the shape and the gate runs the lanes, both from a vendored engine reading `.githooks/hooks.conf`: a
+  rule changes there, never in prose here.
+- A file no lane in that config matches is never checked. A new kind of file means a new lane.
 - AI co-authored: `Co-Authored-By:` naming the model. Never a session link.
 
 > [!IMPORTANT] **No internal codes.** Plan-step, finding, severity (`P0`) or phase ids stay in scratch notes. Describe
@@ -24,7 +28,10 @@ board; the dry-run and second converge are the consumer's, so write for them. `R
 
 ## Releases
 
-- `galaxy.yml` `version:`, `CHANGELOG.md` heading and git tag move together. Consumers pin tags, never branches.
+- `make release VERSION=x.y.z` stamps `galaxy.yml`, gates on every leg and tags; `make publish` sends it up. Both take
+  `DRY_RUN=1`. There is no CI: a release is the only time the slow legs run.
+- `galaxy.yml` `version:`, `CHANGELOG.md` heading and git tag move together — write the CHANGELOG section first, or
+  `make release` refuses. Consumers pin tags, never branches.
 - Contract change (new required var, unsafe default, renamed role): major, under "Changed".
 - New authoring doc or repo-local tool path: add to `build_ignore` in the same commit. The build ignores `.gitignore`.
 - Collection deps: `galaxy.yml` and `requirements.yml` together. Core floor: `meta/runtime.yml` and `scripts/lint.sh`
@@ -59,8 +66,8 @@ board; the dry-run and second converge are the consumer's, so write for them. `R
 
 - [YSAP style](https://style.ysap.sh), 80 columns.
 - `set -uo pipefail` with explicit checks (`cd "$dir" || exit 1`); errexit never.
-- `scripts/` and `.githooks/` run on bash 3.2; board-side shell may assume GNU userland and bash 5.
-- Make recipes delegate to `scripts/`.
+- `scripts/` and `.githooks/` need bash 4.4+, the hook engine's own floor; board-side shell may assume GNU userland.
+- Make recipes delegate — to `scripts/`, or to the vendored engine. Logic never accumulates in Make syntax.
 
 ## Altitude
 
@@ -69,14 +76,15 @@ board; the dry-run and second converge are the consumer's, so write for them. `R
 - **Code:** names, defaults, asserts, guards.
 - **Comments:** focused on the line beside them; only what the code can't say — a hidden contract, a var's intent, a
   quirk's failure, the alternative that lost.
-- **Docs:** knowledge spanning several sources in the repo. `docs/<topic>/` runbooks, `docs/adr/` decisions,
-  `docs/agents/` skill config; kebab-case. Point at roles and files, never paste them.
+- **Docs:** knowledge spanning several sources in the repo. `docs/<topic>/` runbooks, `docs/decisions.md` what is
+  settled, `docs/roadmap.md` where this is going; kebab-case. Point at roles and files, never paste them. The last two
+  stay at repo altitude — a decision that only makes sense beside one file belongs in that file.
 
 A comment reaching past its file belongs a rung up. A doc tied to one file belongs a rung down.
 
-## Agent skills
+## Agent shell gotchas
 
-- Issue tracker: GitHub issues via `gh` — `docs/agents/issue-tracker.md`.
-- Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` —
-  `docs/agents/triage-labels.md`.
-- Domain docs: single context, root `CONTEXT.md` and `docs/adr/` — `docs/agents/domain.md`.
+- `ansible*` refuses non-blocking stdio and has no opt-out: the check runs at import, before any flag is read. This
+  shell hands it a non-blocking stderr, so pipe the command through `cat` — `make check 2>&1 | cat`. Lanes cannot
+  redirect, which is why the ansible legs sit in `scripts/lint.sh`.
+- `cd` is wrapped by zoxide: use `builtin cd` or absolute paths.

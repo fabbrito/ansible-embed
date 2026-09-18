@@ -5,10 +5,12 @@
 #   make             # show this help
 #   make deps        # install the collections the roles depend on
 #   make hooks       # point git at .githooks (once per clone)
-#   make check       # fmt-check + lint (the pre-commit gate)
-#   make sanity      # ansible-test sanity (CI; slow on a cold venv)
-#   make test        # golden render tests (CI)
+#   make check       # every hook lane over the working changes (the gate)
+#   make sanity      # ansible-test sanity (a release leg; slow on a cold venv)
+#   make test        # golden render tests (a release leg)
 #   make check-codes # sweep for plan labels (manual)
+#   make release     # stamp, gate, commit and tag (VERSION=x.y.z)
+#   make publish     # send the tag up and cut the GitHub release
 
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
@@ -32,7 +34,7 @@ help: ## Show this help
 # ansible.cfg here, and scripts/lint.sh exports the path where one is needed.
 # Leave it: it is the guard that catches the same mistake in a consumer's tree.
 # An ansible-core with bundled collections can satisfy every pin and skip,
-# leaving $(COLLECTIONS_DIR) empty; CI's bare core populates it.
+# leaving $(COLLECTIONS_DIR) empty; a bare core populates it.
 .PHONY: deps
 deps: ## Install/upgrade the Ansible collections the roles depend on
 	ansible-galaxy collection install -r requirements.yml --upgrade -p $(COLLECTIONS_DIR)/
@@ -41,35 +43,33 @@ deps: ## Install/upgrade the Ansible collections the roles depend on
 
 # core.hooksPath is per-clone and git will not set it for you — a hook that
 # nobody enabled is worth nothing, so this is the one setup step besides `deps`.
-# Both hooks name this target in their own header.
+# chmod too: git runs the shims directly, and a mode bit lost to a checkout or
+# a zip download disables the whole gate silently.
 .PHONY: hooks
 hooks: ## Enable the repo's git hooks (once per clone)
 	git config core.hooksPath .githooks
-	@printf 'hooks enabled — pre-commit runs "make check", commit-msg grades the subject\n'
+	@chmod +x .githooks/githooks .githooks/commit-msg .githooks/pre-commit
+	@printf 'hooks enabled — skip one commit with --no-verify\n'
 
+# The gate is .githooks/hooks.conf: the lanes live there, this is a caller.
+# Adding a check means adding a lane, not a target — a file no lane matches is
+# never checked.
 .PHONY: check
-check: fmt-check lint ## fmt-check + lint (the pre-commit gate)
+check: ## Run every hook lane over the working changes (the gate)
+	.githooks/githooks check
 
 .PHONY: check-codes
 check-codes: ## Sweep for plan labels (manual, not in check)
 	./scripts/check-codes.sh
 
 .PHONY: fmt
-fmt: ## Format YAML/MD/JSON (prettier) + Bash (shfmt)
-	./scripts/fmt.sh
+fmt: ## Run the same lanes, writing (prettier --write, shfmt -w); never stages
+	.githooks/githooks check --fix
 
-.PHONY: fmt-check
-fmt-check: ## Verify formatting without writing (no autofix)
-	./scripts/fmt.sh --check
-
-.PHONY: lint
-lint: ## Syntax-check playbooks + ansible-lint + shellcheck + collection build
-	./scripts/lint.sh
-
-##@ CI checks
+##@ Release legs
 
 # Out of `check` on purpose: the pre-commit hook runs check on every commit, and
-# a first `sanity` run builds a sanity venv per supported Python. CI runs it.
+# a first `sanity` run builds a sanity venv per supported Python.
 .PHONY: sanity
 sanity: ## ansible-test sanity against a staged copy of the working tree
 	./scripts/sanity.sh
@@ -86,13 +86,17 @@ golden-update: ## Accept the current render as the expectation (READ THE DIFF)
 
 ##@ Release
 
-.PHONY: build
-build: ## Build the collection tarball into $(COLLECTIONS_DIR)/
-	ansible-galaxy collection build --force --output-path $(COLLECTIONS_DIR)
+.PHONY: build-check
+build-check: ## Build the collection and inspect what the tarball ships
+	./scripts/build-check.sh
 
-# Out of `check` because it needs a tag to grade and there is none on a branch.
-# CI runs it on every v* tag; run it yourself before tagging to catch the bump
-# you forgot while the fix is still one amend away.
-.PHONY: tag-check
-tag-check: ## Assert TAG matches galaxy.yml's version (make tag-check TAG=v1.0.1)
-	./scripts/tag-check.sh $(TAG)
+# The whole release gate, because there is no CI: lanes, goldens, sanity, the
+# tarball, then the tag against the built MANIFEST. Stamps galaxy.yml, refuses
+# without the CHANGELOG section, and leaves the commit and tag on this machine.
+.PHONY: release
+release: ## Stamp, gate, commit and tag — VERSION=x.y.z [DRY_RUN=1]
+	./scripts/release.sh $(if $(DRY_RUN),--dry-run) $(VERSION)
+
+.PHONY: publish
+publish: ## Send master and the tag up, then the GitHub release [DRY_RUN=1]
+	./scripts/publish.sh $(if $(DRY_RUN),--dry-run)

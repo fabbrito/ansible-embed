@@ -42,5 +42,5 @@ reporting zero changed. Both belong to the consuming repo, on the tag they adopt
 
 ---
 
-> **Opening this from a fork?** CI will not start on its own — it waits for a maintainer to approve the run, on every PR
-> rather than only your first. Silence is the policy, not a broken workflow.
+> **Opening this from a fork?** Nothing runs your branch here: the gate is the hooks in your own clone (`make hooks`,
+> then `make check`), and a maintainer runs it again before a release.

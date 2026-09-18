@@ -1,7 +1,8 @@
 # Context
 
 The vocabulary this repo uses, and what each word means _here_. It is a glossary and nothing else — the mechanics live
-in the roles, the reasoning in `docs/adr/`, and the rules an author must uphold in `AGENTS.md`.
+in the roles, the reasoning in their comments and `docs/decisions.md`, and the rules an author must uphold in
+`AGENTS.md`.
 
 Use these words in issues, plans, comments, docs and role names. Where a near-synonym means something else here, the
 entry says so.
@@ -91,7 +92,12 @@ failure. _Avoid_: token, secret key
 ## The gate
 
 **Gate**: The three checks that stand between a change and a converged board, in increasing order of truthfulness. Only
-the first runs here. _Avoid_: test suite, CI (there is no suite; naming one oversells it)
+the first runs here, in two tiers: the lanes on every commit, the release legs once per tag. _Avoid_: test suite, CI
+(there is no suite; naming one oversells it)
+
+**Lane**: One group of checks in `.githooks/hooks.conf`, matched to the file kinds it grades and run by the vendored
+hook engine. A file no lane matches is never checked, so a new kind of file means a new lane. _Avoid_: hook, step (the
+hook is the engine that runs the lanes)
 
 **Dry-run**: A check-mode converge against a real board, read for its diff. Not proof, because check mode lies where a
 prerequisite was never really installed — but an unexpected diff is always real. _Avoid_: simulation, preview
@@ -104,7 +110,7 @@ real drift then hides in the noise. _Avoid_: noisy, non-idempotent
 
 **Precondition**: An invariant a role depends on that the variable schema cannot make unrepresentable, and that fails
 silently if unguarded. Roles assert these and nothing else — never that a package installed. _Avoid_: check, outcome
-(ADR-0010 uses "validate" for the act; the noun for the thing asserted is precondition)
+("validate" is the act; the noun for the thing asserted is precondition)
 
 ## Secrets and absence
 

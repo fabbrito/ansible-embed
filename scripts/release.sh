@@ -92,8 +92,16 @@ if ! ./scripts/tag-check.sh "$tag"; then
 	die 'tag-check failed — nothing committed'
 fi
 
+# The stamp is this script's to own all the way down: the commit runs the
+# repo's own hooks and can be rejected, and a stamped galaxy.yml left behind
+# refuses the next run as "tree not clean", naming nothing.
 git add galaxy.yml || die 'cannot stage the stamp'
-git commit -qm "$subject" || die 'commit failed'
-git tag -a "$tag" -m "$tag" || die 'tag failed'
+if ! git commit -qm "$subject"; then
+	git reset -q galaxy.yml
+	unstamp
+	die 'commit failed — nothing committed'
+fi
+git tag -a "$tag" -m "$tag" ||
+	die "committed, but tagging failed — finish it: git tag -a $tag -m $tag"
 
 printf 'release: %s tagged — make publish sends it up\n' "$tag"

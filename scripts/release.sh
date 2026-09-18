@@ -37,7 +37,11 @@ if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 	exit 2
 fi
 tag=v$version
-subject="chore(release): release $tag"
+# "prepare", and the bare version: the subject this repo has used since
+# 1.0.0. The tag is cut in the same breath, so "release" would read
+# truer — but the two commits that set the precedent are tagged, and a
+# released tag is never repointed.
+subject="chore(release): prepare $version"
 
 refusals=0
 refuse() {

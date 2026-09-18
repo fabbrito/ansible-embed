@@ -51,7 +51,7 @@ trap 'rm -f "$notes"' EXIT
 
 if $dry; then
 	printf 'publish: would send master and %s to origin, then:\n' "$tag"
-	printf '  gh release create %s --title "fabbrito.embed %s" --notes-file -\n' \
+	printf '  gh release create %s --title "fabbrito.embed %s" --notes-file <notes>\n' \
 		"$tag" "$tag"
 	printf -- '--- notes ---\n'
 	cat "$notes"

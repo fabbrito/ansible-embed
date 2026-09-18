@@ -92,7 +92,12 @@ failure. _Avoid_: token, secret key
 ## The gate
 
 **Gate**: The three checks that stand between a change and a converged board, in increasing order of truthfulness. Only
-the first runs here. _Avoid_: test suite, CI (there is no suite; naming one oversells it)
+the first runs here, in two tiers: the lanes on every commit, the release legs once per tag. _Avoid_: test suite, CI
+(there is no suite; naming one oversells it)
+
+**Lane**: One group of checks in `.githooks/hooks.conf`, matched to the file kinds it grades and run by the vendored
+hook engine. A file no lane matches is never checked, so a new kind of file means a new lane. _Avoid_: hook, step (the
+hook is the engine that runs the lanes)
 
 **Dry-run**: A check-mode converge against a real board, read for its diff. Not proof, because check mode lies where a
 prerequisite was never really installed — but an unexpected diff is always real. _Avoid_: simulation, preview

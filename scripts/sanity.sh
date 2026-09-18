@@ -10,6 +10,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
+# ansible refuses non-blocking descriptors, and the check runs at import.
+# Fresh pipes through cat are blocking; see AGENTS.md > Agent shell gotchas.
+exec </dev/null > >(cat) 2>&1
+
 red() { printf '\033[0;31m%s\033[0m\n' "$*"; }
 green() { printf '\033[0;32m%s\033[0m\n' "$*"; }
 bold() { printf '\033[1m%s\033[0m\n' "$*"; }

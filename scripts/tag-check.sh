@@ -17,6 +17,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
+# ansible refuses non-blocking descriptors, and the check runs at import.
+# Fresh pipes through cat are blocking; see AGENTS.md > Agent shell gotchas.
+exec </dev/null > >(cat) 2>&1
+
 tag=${1-${GITHUB_REF_NAME-}}
 if [[ -z $tag ]]; then
 	printf 'usage: %s <tag>\n' "$0" >&2

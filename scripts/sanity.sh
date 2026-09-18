@@ -2,7 +2,8 @@
 # ansible-test sanity. Run from repo root: ./scripts/sanity.sh
 #
 # Deliberately NOT part of `make check`: check is the pre-commit gate and stays
-# fast, while this builds a venv per Python version on first run. CI runs both.
+# fast, while this builds a venv per Python version on first run. It is a
+# release leg — scripts/release.sh runs it before a tag is cut.
 #
 # No errexit: the staging steps guard themselves, and the one command that
 # matters records its own status.

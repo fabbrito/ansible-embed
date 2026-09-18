@@ -80,11 +80,13 @@ build_ignore:
   - AGENTS.md
   - CLAUDE.md
   # The glossary points at AGENTS.md, which does not ship — sending it alone
-  # ships a dangling pointer. docs/agents/ is skill configuration for authoring
-  # THIS repo (it names this repo's issue tracker), so it is the same class as
-  # AGENTS.md, not documentation a consumer can act on.
+  # ships a dangling pointer.
   - CONTEXT.md
-  - docs/agents
+  # Authoring docs, the same class as AGENTS.md: what this collection settled
+  # and where it is going are maintainer context, and a consumer acting on
+  # either would be acting on a plan rather than on what the tag ships.
+  - docs/decisions.md
+  - docs/roadmap.md
   # Changing the rclone version in roles/rclone/defaults is maintainer work.
   - docs/rclone/upgrading.md
   - Makefile

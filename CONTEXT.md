@@ -1,7 +1,8 @@
 # Context
 
 The vocabulary this repo uses, and what each word means _here_. It is a glossary and nothing else — the mechanics live
-in the roles, the reasoning in `docs/adr/`, and the rules an author must uphold in `AGENTS.md`.
+in the roles, the reasoning in their comments and `docs/decisions.md`, and the rules an author must uphold in
+`AGENTS.md`.
 
 Use these words in issues, plans, comments, docs and role names. Where a near-synonym means something else here, the
 entry says so.
@@ -104,7 +105,7 @@ real drift then hides in the noise. _Avoid_: noisy, non-idempotent
 
 **Precondition**: An invariant a role depends on that the variable schema cannot make unrepresentable, and that fails
 silently if unguarded. Roles assert these and nothing else — never that a package installed. _Avoid_: check, outcome
-(ADR-0010 uses "validate" for the act; the noun for the thing asserted is precondition)
+("validate" is the act; the noun for the thing asserted is precondition)
 
 ## Secrets and absence
 

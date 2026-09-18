@@ -154,10 +154,21 @@ path in any port, and loud when the stick is absent.
 ```bash
 make deps     # install the collections the roles depend on
 make hooks    # enable the repo's git hooks (once per clone)
-make check    # fmt-check + lint — the pre-commit gate
-make test     # golden render tests
-make sanity   # ansible-test sanity (slow on a cold venv)
+make check    # every hook lane over the working changes — the commit gate
+make test     # golden render tests (a release leg)
+make sanity   # ansible-test sanity (a release leg; slow on a cold venv)
+make release  # stamp, gate, commit and tag — VERSION=x.y.z [DRY_RUN=1]
 ```
+
+### Where the gate lives
+
+There is no CI here. The hooks in your own clone gate every commit — formatting, a playbook syntax check and
+`ansible-lint` at the production profile — and `make release` runs the slow legs once, before a tag exists: the golden
+renders, `ansible-test sanity`, and an inspection of what the tarball would ship.
+
+What this repo cannot prove is the half that matters most: a `--check --diff` against a real board with the diff read,
+and a second converge reporting zero changed. This layer owns no inventory and reaches no host, so that gate is the
+consuming repo's, on the tag it adopts.
 
 ## Security
 

@@ -88,12 +88,12 @@ board without `python3-apt` fails at the package task; the first converge instal
 
 #### Optional — absent, the default stands
 
-| Var                         | Where            | What it buys                                                         |
-| --------------------------- | ---------------- | -------------------------------------------------------------------- |
-| `os_apt_packages`           | `group_vars`     | Default `[ca-certificates, avahi-daemon]`. Installed, never removed. |
-| `os_unattended_origins`     | `group_vars`     | Default `[]`. Extra Origins-Pattern entries for other repos.         |
-| `os_unattended_reboot_time` | `group_vars/all` | Default `"04:00"`, `HH:MM` local.                                    |
-| `os_ntp_servers`            | `group_vars/all` | Default `[]`. systemd-timesyncd servers; empty leaves the image's.   |
+| Var                         | Where            | What it buys                                                                      |
+| --------------------------- | ---------------- | --------------------------------------------------------------------------------- |
+| `os_apt_packages`           | `group_vars`     | Default `[ca-certificates, avahi-daemon, jq, sqlite3]`. Installed, never removed. |
+| `os_unattended_origins`     | `group_vars`     | Default `[]`. Extra Origins-Pattern entries for other repos.                      |
+| `os_unattended_reboot_time` | `group_vars/all` | Default `"04:00"`, `HH:MM` local.                                                 |
+| `os_ntp_servers`            | `group_vars/all` | Default `[]`. systemd-timesyncd servers; empty leaves the image's.                |
 
 ### `rclone`
 

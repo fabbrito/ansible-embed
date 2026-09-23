@@ -12,6 +12,7 @@ A released tag is never repointed.
 - `network` role and `fabbrito.embed.network` playbook: pins a board's LAN address as `address1` beside DHCP, for a
   router that cannot reserve one. Not in the baseline — a consumer imports the play where it needs it. Contract var
   `network_address` (CIDR); role var `network_interface`, default `eth0`.
+- `os`: installs `jq` and `sqlite3` as base packages.
 
 ## 1.0.1
 

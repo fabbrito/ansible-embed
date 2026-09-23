@@ -3,6 +3,8 @@
 os_apt_packages:
   - ca-certificates
   - avahi-daemon # reach the board as <hostname>.local
+  - jq # parse JSON in a shell; the image ships none
+  - sqlite3 # inspect a service's SQLite store
 
 # Extra unattended-upgrades Origins-Pattern entries, for repos beyond Debian and
 # Raspberry Pi OS, e.g. "origin=Armbian,codename=${distro_codename}".

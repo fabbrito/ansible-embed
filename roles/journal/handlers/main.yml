@@ -14,12 +14,14 @@
 
 # The unit pulls the volume in (`RequiresMountsFor`), and mounting before
 # journald restarts is what puts its directory on the stick. Restarted, not
-# started: an active mount keeps its old `What=` until remounted.
+# started: an active mount keeps its old `What=` until remounted. Skipped in
+# check mode: on a fresh board the unit file was never written.
 - name: Mount the journal
   ansible.builtin.systemd_service:
     name: var-log-journal.mount
     state: restarted
     enabled: true
+  when: not ansible_check_mode
   listen: Apply the journal location
 
 - name: Restart journald

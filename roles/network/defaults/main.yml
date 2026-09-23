@@ -1,0 +1,6 @@
+---
+# The wired interface the fixed address lands on.
+network_interface: eth0
+
+# network_address is a contract var, set in the consumer, never declared here
+# (README, "Use"). The role asserts it as CIDR.

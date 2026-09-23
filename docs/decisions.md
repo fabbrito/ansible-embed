@@ -10,6 +10,10 @@ detail that only makes sense beside one role belongs in that role.
 The alternative, a single collection holding the baseline and the services, loses: every consumer would carry services
 it does not run, and a service's release cadence would ride on the baseline's.
 
+**Network is opt-in, not baseline.** A board's address is a baseline concern only where the router cannot reserve one,
+and a role with a required `network_address` would fail every consumer that has reservations instead. It ships as a role
+with its own play to import; the interface is a role var, defaulting to the reference board's `eth0`.
+
 **The tag is the artifact.** A consumer resolves a git tag over https: no branch, no registry, no vendoring, no
 submodule. A tag installs without a credential, which is what lets an unattended runner adopt it, and it cannot move
 under a consumer that has already pinned it. Registry publishing is deliberately absent; the release notes carry the

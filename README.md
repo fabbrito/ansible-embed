@@ -88,12 +88,12 @@ board without `python3-apt` fails at the package task; the first converge instal
 
 #### Optional — absent, the default stands
 
-| Var                         | Where            | What it buys                                                         |
-| --------------------------- | ---------------- | -------------------------------------------------------------------- |
-| `os_apt_packages`           | `group_vars`     | Default `[ca-certificates, avahi-daemon]`. Installed, never removed. |
-| `os_unattended_origins`     | `group_vars`     | Default `[]`. Extra Origins-Pattern entries for other repos.         |
-| `os_unattended_reboot_time` | `group_vars/all` | Default `"04:00"`, `HH:MM` local.                                    |
-| `os_ntp_servers`            | `group_vars/all` | Default `[]`. systemd-timesyncd servers; empty leaves the image's.   |
+| Var                         | Where            | What it buys                                                                      |
+| --------------------------- | ---------------- | --------------------------------------------------------------------------------- |
+| `os_apt_packages`           | `group_vars`     | Default `[ca-certificates, avahi-daemon, jq, sqlite3]`. Installed, never removed. |
+| `os_unattended_origins`     | `group_vars`     | Default `[]`. Extra Origins-Pattern entries for other repos.                      |
+| `os_unattended_reboot_time` | `group_vars/all` | Default `"04:00"`, `HH:MM` local.                                                 |
+| `os_ntp_servers`            | `group_vars/all` | Default `[]`. systemd-timesyncd servers; empty leaves the image's.                |
 
 ### `rclone`
 
@@ -108,6 +108,32 @@ version: `docs/rclone/upgrading.md`, in the repo.
 | `rclone_r2_access_key_id`, `rclone_r2_secret_access_key`, `rclone_r2_endpoint` | vault        | The `r2` remote. All three or none, asserted.                                                             |
 | `rclone_crypt_password`, `rclone_crypt_password2`                              | vault        | The `r2crypt` wrapper over `rclone_crypt_target`. Both or neither, asserted. `docs/rclone/encryption.md`. |
 | `rclone_crypt_target`                                                          | `group_vars` | Default `r2:backups`. What `r2crypt` encrypts into.                                                       |
+
+### `network`
+
+Not in the baseline. A router that reserves addresses needs nothing here, so the baseline would fail every consumer that
+never sets `network_address`. Import the play where the board has to hold its own:
+
+```yaml
+- import_playbook: fabbrito.embed.baseline
+- import_playbook: fabbrito.embed.network
+```
+
+Renders `/etc/NetworkManager/system-connections/<interface>.nmconnection`: DHCP stays, and `network_address` is set as
+`address1`, so a wrong fixed address cannot cut the board off. Activating the profile drops the interface for seconds
+and this SSH session with it; the role reconnects.
+
+#### Required
+
+| Var               | Where     | What it buys                                        |
+| ----------------- | --------- | --------------------------------------------------- |
+| `network_address` | inventory | The board's address, as CIDR. Asserted; no default. |
+
+#### Optional — absent, the default stands
+
+| Var                 | Where     | What it buys                         |
+| ------------------- | --------- | ------------------------------------ |
+| `network_interface` | inventory | Default `eth0`. The wired interface. |
 
 ## Seed
 

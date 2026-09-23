@@ -1,7 +1,7 @@
 ---
 - name: Assert storage_path
   ansible.builtin.assert:
-    that: storage_path | default('') is match('^/[^/]+$')
+    that: storage_path | default('') is match('^/.*[^/]$')
     fail_msg: >-
       storage_path is required: the storage volume's mount path, absolute and
       without a trailing slash (docs/storage/persistent-usb-storage.md).

@@ -4,12 +4,21 @@
     daemon_reload: true
   listen: Apply the journal location
 
+# journald back to /run, so the remount below finds /var/log/journal unused;
+# unmounting under its open files fails busy.
+- name: Relinquish the persistent journal
+  ansible.builtin.command: journalctl --relinquish-var
+  changed_when: true
+  when: not ansible_check_mode
+  listen: Apply the journal location
+
 # The unit pulls the volume in (`RequiresMountsFor`), and mounting before
-# journald restarts is what puts its directory on the stick.
+# journald restarts is what puts its directory on the stick. Restarted, not
+# started: an active mount keeps its old `What=` until remounted.
 - name: Mount the journal
   ansible.builtin.systemd_service:
     name: var-log-journal.mount
-    state: started
+    state: restarted
     enabled: true
   listen: Apply the journal location
 

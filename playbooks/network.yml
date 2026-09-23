@@ -1,0 +1,13 @@
+---
+# A board's LAN address, for a router that cannot reserve one. Not part of the
+# baseline: a consumer imports this beside it (README, "network").
+#
+#   - import_playbook: fabbrito.embed.network
+#
+# Requires network_address in inventory. Scope a run with -l.
+- name: Network
+  hosts: all
+  become: true
+  gather_facts: false
+  roles:
+    - fabbrito.embed.network

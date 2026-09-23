@@ -1,0 +1,18 @@
+---
+- name: Assert network_address
+  ansible.builtin.assert:
+    that: network_address | default('') is match('^[0-9]{1,3}([.][0-9]{1,3}){3}/[0-9]{1,2}$')
+    fail_msg: network_address is required, as CIDR (e.g. 192.168.0.202/24).
+    quiet: true
+
+# A real profile also stops NetworkManager generating its in-memory
+# "Wired connection 1".
+- name: Render the interface profile
+  ansible.builtin.template:
+    src: nmconnection.j2
+    dest: "/etc/NetworkManager/system-connections/{{ network_interface }}.nmconnection"
+    owner: root
+    group: root
+    # NetworkManager ignores a keyfile anyone else can read.
+    mode: "0600"
+  notify: Apply the interface profile

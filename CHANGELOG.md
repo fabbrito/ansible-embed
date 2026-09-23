@@ -5,6 +5,14 @@ consumers pin the tag, so a change that is not released is a change nobody gets.
 
 A released tag is never repointed.
 
+## 1.1.0
+
+### Added
+
+- `network` role and `fabbrito.embed.network` playbook: pins a board's LAN address as `address1` beside DHCP, for a
+  router that cannot reserve one. Not in the baseline — a consumer imports the play where it needs it. Contract var
+  `network_address` (CIDR); role var `network_interface`, default `eth0`.
+
 ## 1.0.1
 
 ### Fixed

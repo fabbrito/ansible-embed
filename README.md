@@ -109,6 +109,32 @@ version: `docs/rclone/upgrading.md`, in the repo.
 | `rclone_crypt_password`, `rclone_crypt_password2`                              | vault        | The `r2crypt` wrapper over `rclone_crypt_target`. Both or neither, asserted. `docs/rclone/encryption.md`. |
 | `rclone_crypt_target`                                                          | `group_vars` | Default `r2:backups`. What `r2crypt` encrypts into.                                                       |
 
+### `network`
+
+Not in the baseline. A router that reserves addresses needs nothing here, so the baseline would fail every consumer that
+never sets `network_address`. Import the play where the board has to hold its own:
+
+```yaml
+- import_playbook: fabbrito.embed.baseline
+- import_playbook: fabbrito.embed.network
+```
+
+Renders `/etc/NetworkManager/system-connections/<interface>.nmconnection`: DHCP stays, and `network_address` is set as
+`address1`, so a wrong fixed address cannot cut the board off. Activating the profile drops the interface for seconds
+and this SSH session with it; the role reconnects.
+
+#### Required
+
+| Var               | Where     | What it buys                                        |
+| ----------------- | --------- | --------------------------------------------------- |
+| `network_address` | inventory | The board's address, as CIDR. Asserted; no default. |
+
+#### Optional — absent, the default stands
+
+| Var                 | Where     | What it buys                         |
+| ------------------- | --------- | ------------------------------------ |
+| `network_interface` | inventory | Default `eth0`. The wired interface. |
+
 ## Seed
 
 A board first boots from a cloud-init seed on its boot partition. Render it from the same inventory the converge uses:

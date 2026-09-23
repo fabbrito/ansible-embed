@@ -161,6 +161,27 @@ and journald stays in RAM.
 | ------------- | --------- | -------------------------------------------------- |
 | `journal_dir` | inventory | Default `journal`. The directory under the volume. |
 
+### `tailscale`
+
+Not in the baseline: a board gets it only if the inventory puts it in the `tailscale` group.
+
+```yaml
+- import_playbook: fabbrito.embed.baseline
+- import_playbook: fabbrito.embed.tailscale
+```
+
+Installs tailscale from Tailscale's apt repo, which `os` lets unattended-upgrades upgrade. With `tailscale_auth_key`
+set, a board not yet on the tailnet joins it; absent, it installs without joining. The tailnet is additive: sshd, the
+LAN path and the board's DNS are untouched (`--accept-dns=false`). A board an operator took down with `tailscale down`
+stays down.
+
+#### Optional — absent, the role skips
+
+| Var                  | Where        | What it buys                                                                       |
+| -------------------- | ------------ | ---------------------------------------------------------------------------------- |
+| `tailscale_auth_key` | vault        | The join. Read only while the board is off the tailnet.                            |
+| `tailscale_up_args`  | `group_vars` | Default `[]`. Extra `tailscale up` flags, e.g. `--advertise-tags`. Join-time only. |
+
 ## Seed
 
 A board first boots from a cloud-init seed on its boot partition. Render it from the same inventory the converge uses:

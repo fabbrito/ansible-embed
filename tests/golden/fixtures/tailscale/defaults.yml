@@ -1,0 +1,4 @@
+---
+# Role defaults on trixie. ansible_distribution_release is a fact, not a
+# default, so the fixture sets it.
+ansible_distribution_release: trixie

@@ -13,6 +13,10 @@ A released tag is never repointed.
   a bind mount, so logs spare the SD card. Not in the baseline — a consumer imports the play where the board carries a
   volume. Contract var `storage_path` (the volume's mount path, asserted mounted); role var `journal_dir`, default
   `journal`.
+- `tailscale` role and `fabbrito.embed.tailscale` playbook, for the `tailscale` inventory group: installs from
+  Tailscale's apt repo and joins the tailnet when `tailscale_auth_key` is set. Vault key `tailscale_auth_key`; role var
+  `tailscale_up_args`.
+- `os`: unattended-upgrades also upgrades from Tailscale's repo, where a board has it.
 
 ## 1.1.0
 

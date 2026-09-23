@@ -1,0 +1,68 @@
+---
+- name: Probe the Tailscale signing key
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/tailscale-archive-keyring.gpg
+  register: tailscale_key
+
+# Bootstrap only: once installed, the keyring package replaces this file, and a
+# rotated key must not fail the pinned hash.
+- name: Download the Tailscale signing key
+  ansible.builtin.get_url:
+    url: "{{ tailscale_repo_url }}/{{ ansible_distribution_release }}.noarmor.gpg"
+    checksum: "sha256:{{ tailscale_key_sha256 }}"
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    owner: root
+    group: root
+    mode: "0644"
+  when: not tailscale_key.stat.exists
+
+- name: Add the Tailscale repo
+  ansible.builtin.template:
+    src: tailscale.sources.j2
+    dest: /etc/apt/sources.list.d/tailscale.sources
+    owner: root
+    group: root
+    mode: "0644"
+  register: tailscale_sources
+
+# In check mode on a fresh board the repo was never added, so apt knows no
+# tailscale package to plan.
+- name: Install tailscale
+  ansible.builtin.apt:
+    name: [tailscale, tailscale-archive-keyring]
+    update_cache: "{{ tailscale_sources is changed }}"
+    lock_timeout: 600
+  when: not (ansible_check_mode and tailscale_sources is changed)
+
+- name: Enable tailscaled
+  ansible.builtin.systemd_service:
+    name: tailscaled
+    state: started
+    enabled: true
+  when: not ansible_check_mode
+
+# --json exits 0 logged out too; the backend state says whether to join.
+- name: Probe the tailnet state
+  ansible.builtin.command: tailscale status --json
+  register: tailscale_status
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+# Absent key: installed, not joined (CONTEXT.md, "Auth key"). Running is joined;
+# Stopped is an operator's `tailscale down`, which a converge does not undo.
+# DNS stays the LAN's: resolving through the tailnet would make it a door the
+# board cannot do without. no_log: the key is in the argv.
+- name: Join the tailnet
+  ansible.builtin.command:
+    argv: >-
+      {{ ['tailscale', 'up', '--auth-key=' ~ tailscale_auth_key,
+          '--accept-dns=false', '--timeout=120s'] + tailscale_up_args }}
+  changed_when: true
+  no_log: true
+  when:
+    - tailscale_auth_key | default('') | length > 0
+    - not ansible_check_mode
+    - >-
+      (tailscale_status.stdout | default('{}', true) | from_json).BackendState
+      | default('') not in ['Running', 'Stopped']

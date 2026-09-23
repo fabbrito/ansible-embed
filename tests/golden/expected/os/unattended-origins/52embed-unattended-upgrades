@@ -14,6 +14,8 @@ APT::Periodic::AutocleanInterval "7";
 Unattended-Upgrade::Origins-Pattern {
   "origin=Raspbian,codename=${distro_codename},label=Raspbian";
   "origin=Raspberry Pi Foundation,codename=${distro_codename},label=Raspberry Pi Foundation";
+  # Matches only where the tailscale role added its repo.
+  "origin=Tailscale,codename=${distro_codename},label=Tailscale";
   "origin=Example,codename=${distro_codename}";
 };
 

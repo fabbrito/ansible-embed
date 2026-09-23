@@ -13,7 +13,7 @@
 # The repository may be hyphenated (`ansible-embed`), the collection may not.
 namespace: fabbrito
 name: embed
-version: 1.0.1
+version: 1.1.0
 readme: README.md
 
 # No mailbox: this manifest ships to every consumer and MANIFEST.json is world

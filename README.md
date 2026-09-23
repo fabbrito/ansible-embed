@@ -135,6 +135,32 @@ and this SSH session with it; the role reconnects.
 | ------------------- | --------- | ------------------------------------ |
 | `network_interface` | inventory | Default `eth0`. The wired interface. |
 
+### `journal`
+
+Not in the baseline: it needs a storage volume, and `storage_path` would fail every consumer that has none. Import the
+play where the board carries one:
+
+```yaml
+- import_playbook: fabbrito.embed.baseline
+- import_playbook: fabbrito.embed.journal
+```
+
+journald has no setting for its directory, so the journal is moved with a bind mount: `<storage_path>/journal` onto
+`/var/log/journal`, plus the drop-in that keeps it on disk. Writes spare the card; with the stick absent the mount fails
+and journald stays in RAM.
+
+#### Required
+
+| Var            | Where     | What it buys                                                   |
+| -------------- | --------- | -------------------------------------------------------------- |
+| `storage_path` | inventory | The storage volume's mount path. Asserted mounted; no default. |
+
+#### Optional — absent, the default stands
+
+| Var           | Where     | What it buys                                       |
+| ------------- | --------- | -------------------------------------------------- |
+| `journal_dir` | inventory | Default `journal`. The directory under the volume. |
+
 ## Seed
 
 A board first boots from a cloud-init seed on its boot partition. Render it from the same inventory the converge uses:
@@ -173,7 +199,7 @@ which strips the image's passwordless sudo and leaves nothing to converge with.
 
 Application state belongs on a USB stick, not the SD card.
 [`docs/storage/persistent-usb-storage.md`](docs/storage/persistent-usb-storage.md) attaches one by filesystem UUID: same
-path in any port, and loud when the stick is absent.
+path in any port, and loud when the stick is absent. That path is `storage_path`, which the `journal` role consumes.
 
 ## Development
 

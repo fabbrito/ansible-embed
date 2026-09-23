@@ -74,6 +74,10 @@ role declares a dependency on another. Meta dependencies would hide an order the
 UUID, guard the empty mount point), kept as a runbook. The collection neither formats nor mounts, because a role would
 automate only the dangerous half for an operator who has to make the decisions anyway.
 
+**The journal moves onto the volume, opt-in.** journald has no setting for its storage directory, so a bind mount
+carries `/var/log/journal` onto the volume; with the stick absent the mount fails and journald stays in RAM. Not in the
+baseline: it needs a volume, and `storage_path` would fail every consumer that has none.
+
 ## What can be proven before a board
 
 **The gate has three levels, and this repo can run one.** The lanes and release legs prove formatting, lint, the

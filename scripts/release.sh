@@ -60,6 +60,14 @@ if git remote get-url origin >/dev/null 2>&1; then
 	git fetch --quiet origin master || die 'cannot fetch origin'
 	git merge-base --is-ancestor origin/master HEAD ||
 		refuse 'origin/master has commits this branch lacks'
+	# A tag absent here may still be on origin: a stale clone, a pruned tag.
+	# `git tag` cannot see it; publish would then collide.
+	git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null
+	case $? in
+		0) refuse "$tag is on origin — never move a release" ;;
+		2) ;;
+		*) die 'cannot list tags on origin' ;;
+	esac
 fi
 grep -q "^## $version\$" CHANGELOG.md ||
 	refuse "CHANGELOG.md has no '## $version' section — write it first"

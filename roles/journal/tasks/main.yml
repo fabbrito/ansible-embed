@@ -7,6 +7,18 @@
       without a trailing slash (docs/storage/persistent-usb-storage.md).
     quiet: true
 
+# Relative and without `..`, or the journal lands off the volume.
+- name: Assert journal_dir
+  ansible.builtin.assert:
+    that:
+      - journal_dir is match('^[^/].*$')
+      - journal_dir is not match('.*/$')
+      - "'..' not in journal_dir.split('/')"
+    fail_msg: >-
+      journal_dir must be a relative path under storage_path, without a
+      trailing slash or `..`.
+    quiet: true
+
 # The probe reads, so it runs in check mode too. `findmnt` resolves the mount a
 # path lands on; on an unmounted path that is /, and the assert below catches it.
 - name: Probe the storage volume

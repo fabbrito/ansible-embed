@@ -174,7 +174,8 @@ Not in the baseline: a board gets it only if the inventory puts it in the `tails
 Installs tailscale from Tailscale's apt repo, which `os` lets unattended-upgrades upgrade. With `tailscale_auth_key`
 set, a board not yet on the tailnet joins it; absent, it installs without joining. The tailnet is additive: sshd, the
 LAN path and the board's DNS are untouched (`--accept-dns=false`). A board an operator took down with `tailscale down`
-stays down.
+stays down. Leaving the tailnet is manual: out of the group or the vault, a board keeps its session until
+`tailscale logout`.
 
 #### Optional — absent, the role skips
 

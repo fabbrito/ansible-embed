@@ -147,7 +147,8 @@ play where the board carries one:
 
 journald has no setting for its directory, so the journal is moved with a bind mount: `<storage_path>/journal` onto
 `/var/log/journal`, plus the drop-in that keeps it on disk. Writes spare the card; with the stick absent the mount fails
-and journald stays in RAM.
+and journald stays in RAM. A board that already kept its journal on the card keeps those files, hidden under the mount;
+copy them onto the volume before the first converge, or they only take space.
 
 #### Required
 

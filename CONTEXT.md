@@ -18,7 +18,8 @@ repo: client, downstream, controller — "client" also means the authoring team'
 of the edge, so all three stay legal in those senses.
 
 **Contract**: The vars that cross roles and therefore carry no role prefix. The consumer sets them; this layer only
-reads them. Adding one is a breaking change. _Avoid_: global var, shared var
+reads them. Adding one is a breaking change where a play consumers already import requires it; one only a new opt-in
+play reads is not. _Avoid_: global var, shared var
 
 **Pin**: The git tag a consumer resolves this collection at. Upgrades are a chosen act, so a pin never names a branch.
 _Avoid_: version, dependency

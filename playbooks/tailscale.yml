@@ -1,0 +1,14 @@
+---
+# The tailnet, for boards the consumer's inventory puts in the `tailscale`
+# group. Not part of the baseline: a board without the group gets nothing
+# (README, "tailscale").
+#
+#   - import_playbook: fabbrito.embed.tailscale
+#
+# Joins only with tailscale_auth_key in the vault. Scope a run with -l.
+- name: Tailscale
+  hosts: tailscale
+  become: true
+  gather_facts: true
+  roles:
+    - fabbrito.embed.tailscale

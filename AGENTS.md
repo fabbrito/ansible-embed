@@ -32,7 +32,8 @@ board; the dry-run and second converge are the consumer's, so write for them. `R
   `DRY_RUN=1`. There is no CI: a release is the only time the slow legs run.
 - `galaxy.yml` `version:`, `CHANGELOG.md` heading and git tag move together — write the CHANGELOG section first, or
   `make release` refuses. Consumers pin tags, never branches.
-- Contract change (new required var, unsafe default, renamed role): major, under "Changed".
+- Contract change (a var required by a play consumers already import, unsafe default, renamed role): major, under
+  "Changed". A var only a new opt-in play reads: minor, under "Added".
 - New authoring doc or repo-local tool path: add to `build_ignore` in the same commit. The build ignores `.gitignore`.
 - Collection deps: `galaxy.yml` and `requirements.yml` together. Core floor: `meta/runtime.yml` and `scripts/lint.sh`
   together.

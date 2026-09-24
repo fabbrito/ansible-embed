@@ -4,12 +4,6 @@ Where this collection intends to grow, at repo altitude: proposals, and what is 
 is scheduled or decided: dates, task lists, and the investigation a proposal needs all arrive when the work is planned.
 `decisions.md` records what shipped, and a proposal that lands updates it then.
 
-## Next
-
-**`tailscale`.** A group-scoped role: a board gets it iff its inventory puts it in that group, and it installs without
-joining when its auth key is absent. The tailnet is additive: the LAN path stays reachable, and the tailnet is never the
-only door.
-
 ## Proposals
 
 **A role for USB storage.** Pin an attached stick at a fixed path by filesystem UUID, and make the empty mount point

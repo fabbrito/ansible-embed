@@ -1,0 +1,11 @@
+---
+# journald has no setting for its storage directory — `Storage=persistent`
+# always means /var/log/journal. Moving it onto the storage volume is
+# therefore a bind mount, not a config line.
+#
+# storage_path is a contract var, set in the consumer, never declared here
+# (README, "Storage"). It is the storage volume's mount path, asserted
+# absolute and mounted.
+#
+# The directory under it, relative. A role var: a consumer may override it.
+journal_dir: journal

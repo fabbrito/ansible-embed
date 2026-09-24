@@ -1,0 +1,15 @@
+---
+# The journal on durable storage, for a board that carries a volume. Not part
+# of the baseline: without a volume `storage_path` fails every consumer that
+# has none, so a consumer imports this where the board has one (README,
+# "journal").
+#
+#   - import_playbook: fabbrito.embed.journal
+#
+# Requires storage_path in inventory. Scope a run with -l.
+- name: Journal
+  hosts: all
+  become: true
+  gather_facts: false
+  roles:
+    - fabbrito.embed.journal

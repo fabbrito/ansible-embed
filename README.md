@@ -135,6 +135,55 @@ and this SSH session with it; the role reconnects.
 | ------------------- | --------- | ------------------------------------ |
 | `network_interface` | inventory | Default `eth0`. The wired interface. |
 
+### `journal`
+
+Not in the baseline: it needs a storage volume, and `storage_path` would fail every consumer that has none. Import the
+play where the board carries one:
+
+```yaml
+- import_playbook: fabbrito.embed.baseline
+- import_playbook: fabbrito.embed.journal
+```
+
+journald has no setting for its directory, so the journal is moved with a bind mount: `<storage_path>/journal` onto
+`/var/log/journal`, plus the drop-in that keeps it on disk. Writes spare the card; with the stick absent the mount fails
+and journald stays in RAM. A board that already kept its journal on the card keeps those files, hidden under the mount;
+copy them onto the volume before the first converge, or they only take space.
+
+#### Required
+
+| Var            | Where     | What it buys                                                   |
+| -------------- | --------- | -------------------------------------------------------------- |
+| `storage_path` | inventory | The storage volume's mount path. Asserted mounted; no default. |
+
+#### Optional — absent, the default stands
+
+| Var           | Where     | What it buys                                       |
+| ------------- | --------- | -------------------------------------------------- |
+| `journal_dir` | inventory | Default `journal`. The directory under the volume. |
+
+### `tailscale`
+
+Not in the baseline: a board gets it only if the inventory puts it in the `tailscale` group.
+
+```yaml
+- import_playbook: fabbrito.embed.baseline
+- import_playbook: fabbrito.embed.tailscale
+```
+
+Installs tailscale from Tailscale's apt repo, which `os` lets unattended-upgrades upgrade. With `tailscale_auth_key`
+set, a board not yet on the tailnet joins it; absent, it installs without joining. The tailnet is additive: sshd, the
+LAN path and the board's DNS are untouched (`--accept-dns=false`). A board an operator took down with `tailscale down`
+stays down. Leaving the tailnet is manual: out of the group or the vault, a board keeps its session until
+`tailscale logout`.
+
+#### Optional — absent, the role skips
+
+| Var                  | Where        | What it buys                                                                       |
+| -------------------- | ------------ | ---------------------------------------------------------------------------------- |
+| `tailscale_auth_key` | vault        | The join. Read only while the board is off the tailnet.                            |
+| `tailscale_up_args`  | `group_vars` | Default `[]`. Extra `tailscale up` flags, e.g. `--advertise-tags`. Join-time only. |
+
 ## Seed
 
 A board first boots from a cloud-init seed on its boot partition. Render it from the same inventory the converge uses:
@@ -173,7 +222,7 @@ which strips the image's passwordless sudo and leaves nothing to converge with.
 
 Application state belongs on a USB stick, not the SD card.
 [`docs/storage/persistent-usb-storage.md`](docs/storage/persistent-usb-storage.md) attaches one by filesystem UUID: same
-path in any port, and loud when the stick is absent.
+path in any port, and loud when the stick is absent. That path is `storage_path`, which the `journal` role consumes.
 
 ## Development
 

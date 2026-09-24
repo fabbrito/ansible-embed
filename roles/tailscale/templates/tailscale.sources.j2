@@ -4,4 +4,4 @@ Types: deb
 URIs: {{ tailscale_repo_url }}
 Suites: {{ ansible_distribution_release }}
 Components: main
-Signed-By: /usr/share/keyrings/tailscale-archive-keyring.gpg
+Signed-By: {{ tailscale_keyring }}

@@ -1,0 +1,4 @@
+---
+# Where the keyring package puts the key, so our bootstrap copy is the file it
+# later replaces.
+tailscale_keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg

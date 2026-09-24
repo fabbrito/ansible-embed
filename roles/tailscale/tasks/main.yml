@@ -1,7 +1,7 @@
 ---
 - name: Probe the Tailscale signing key
   ansible.builtin.stat:
-    path: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    path: "{{ tailscale_keyring }}"
   register: tailscale_key
 
 # Bootstrap only: once installed, the keyring package replaces this file, and a
@@ -10,7 +10,7 @@
   ansible.builtin.get_url:
     url: "{{ tailscale_repo_url }}/{{ ansible_distribution_release }}.noarmor.gpg"
     checksum: "sha256:{{ tailscale_key_sha256 }}"
-    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    dest: "{{ tailscale_keyring }}"
     owner: root
     group: root
     mode: "0644"

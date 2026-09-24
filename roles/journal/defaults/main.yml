@@ -7,5 +7,5 @@
 # (README, "Storage"). It is the storage volume's mount path, asserted
 # absolute and mounted.
 #
-# The directory under it. A role var: it is ours, and no consumer names it.
+# The directory under it, relative. A role var: a consumer may override it.
 journal_dir: journal
